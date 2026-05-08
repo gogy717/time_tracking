@@ -6,16 +6,22 @@ export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { weeklyGoalHours } = await req.json();
+  const body = await req.json();
 
-  if (typeof weeklyGoalHours !== "number" || weeklyGoalHours < 0) {
-    return NextResponse.json({ error: "Invalid weeklyGoalHours" }, { status: 400 });
+  const data: Record<string, unknown> = {};
+
+  if (body.goalTargetDate !== undefined) {
+    data.goalTargetDate = body.goalTargetDate ? new Date(body.goalTargetDate) : null;
+  }
+
+  if (typeof body.weeklyGoalHours === "number" && body.weeklyGoalHours > 0) {
+    data.weeklyGoalHours = body.weeklyGoalHours;
   }
 
   const user = await db.user.update({
     where: { id: session.user.id },
-    data: { weeklyGoalHours },
-    select: { id: true, weeklyGoalHours: true },
+    data,
+    select: { id: true, weeklyGoalHours: true, goalTargetDate: true },
   });
 
   return NextResponse.json(user);

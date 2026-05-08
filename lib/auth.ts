@@ -13,7 +13,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
     Resend({
       apiKey: process.env.AUTH_RESEND_KEY!,
-      from: "noreply@yourdomain.com", // TODO: replace with your verified domain
+      from: "onboarding@resend.dev", // TODO: replace with your verified domain
     }),
   ],
   pages: {

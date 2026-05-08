@@ -8,12 +8,20 @@ export default async function SettingsPage() {
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { email: true, name: true, image: true, weeklyGoalHours: true },
+    select: { email: true, name: true, image: true, weeklyGoalHours: true, goalTargetDate: true },
   });
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">设置</h1>
+    <div style={{ maxWidth:"32rem",margin:"0 auto" }}>
+      <div style={{ marginBottom:"2rem" }}>
+        <div style={{ display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"0.5rem" }}>
+          <span style={{ color:"rgba(0,229,255,0.5)",fontFamily:"monospace" }}>◧</span>
+          <h1 style={{ fontSize:"1.25rem",fontWeight:700,color:"#dde4ff",letterSpacing:"0.12em",textTransform:"uppercase" }}>
+            设置
+          </h1>
+        </div>
+        <div style={{ height:1,background:"linear-gradient(90deg,rgba(0,229,255,0.35),transparent 60%)" }} />
+      </div>
       <SettingsClient user={user!} />
     </div>
   );

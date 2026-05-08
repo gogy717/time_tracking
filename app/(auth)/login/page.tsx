@@ -17,47 +17,134 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border p-8 space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">时间追踪</h1>
-        <p className="mt-1 text-sm text-gray-500">登录以开始记录你的专注时间</p>
+    <div
+      style={{
+        background: "rgba(10,10,24,0.97)",
+        border: "1px solid rgba(0,229,255,0.2)",
+        borderRadius: "2px",
+        padding: "2.5rem",
+        boxShadow: "0 0 60px rgba(0,0,0,0.9), 0 0 40px rgba(0,229,255,0.04)",
+        position: "relative",
+      }}
+    >
+      {/* Corner brackets */}
+      <span style={{ position:"absolute",top:-1,left:-1,width:16,height:16,borderTop:"2px solid #00e5ff",borderLeft:"2px solid #00e5ff" }} />
+      <span style={{ position:"absolute",top:-1,right:-1,width:16,height:16,borderTop:"2px solid #00e5ff",borderRight:"2px solid #00e5ff" }} />
+      <span style={{ position:"absolute",bottom:-1,left:-1,width:16,height:16,borderBottom:"2px solid #00e5ff",borderLeft:"2px solid #00e5ff" }} />
+      <span style={{ position:"absolute",bottom:-1,right:-1,width:16,height:16,borderBottom:"2px solid #00e5ff",borderRight:"2px solid #00e5ff" }} />
+
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <div style={{ fontSize:"0.65rem",letterSpacing:"0.4em",color:"rgba(0,229,255,0.4)",textTransform:"uppercase",marginBottom:"0.75rem" }}>
+          SYSTEM ACCESS
+        </div>
+        <h1
+          style={{
+            fontSize: "2rem",
+            fontWeight: 800,
+            color: "#00e5ff",
+            textShadow: "0 0 15px rgba(0,229,255,0.7), 0 0 30px rgba(0,229,255,0.3)",
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+          }}
+        >
+          时间追踪
+        </h1>
+        <div style={{ height:1,background:"linear-gradient(90deg,transparent,rgba(0,229,255,0.4),transparent)",margin:"0.75rem 0 0" }} />
+        <p style={{ fontSize:"0.8rem",color:"rgba(74,85,128,0.9)",marginTop:"0.75rem",letterSpacing:"0.05em" }}>
+          登录以开始记录你的专注时间
+        </p>
       </div>
 
+      {/* Google */}
       <button
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        style={{
+          width:"100%",
+          display:"flex",
+          alignItems:"center",
+          justifyContent:"center",
+          gap:"0.75rem",
+          padding:"0.7rem 1rem",
+          background:"rgba(255,255,255,0.03)",
+          border:"1px solid rgba(255,255,255,0.1)",
+          borderRadius:"2px",
+          color:"#dde4ff",
+          fontSize:"0.875rem",
+          fontWeight:500,
+          cursor:"pointer",
+          letterSpacing:"0.05em",
+          transition:"all 0.2s",
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,229,255,0.4)";
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 15px rgba(0,229,255,0.08)";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)";
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+        }}
       >
         <GoogleIcon />
         使用 Google 登录
       </button>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-        <div className="relative flex justify-center text-xs text-gray-400">
-          <span className="bg-white px-2">或</span>
-        </div>
+      {/* Divider */}
+      <div style={{ position:"relative",margin:"1.5rem 0",display:"flex",alignItems:"center" }}>
+        <div style={{ flex:1,height:1,background:"rgba(255,255,255,0.06)" }} />
+        <span style={{ padding:"0 0.75rem",fontSize:"0.7rem",color:"rgba(74,85,128,0.6)",letterSpacing:"0.2em" }}>OR</span>
+        <div style={{ flex:1,height:1,background:"rgba(255,255,255,0.06)" }} />
       </div>
 
+      {/* Email */}
       {sent ? (
-        <p className="text-center text-sm text-gray-600">
-          已发送登录链接到 <strong>{email}</strong>，请查看邮箱。
-        </p>
+        <div style={{ textAlign:"center",padding:"1rem",border:"1px solid rgba(0,229,255,0.15)",borderRadius:"2px",background:"rgba(0,229,255,0.03)" }}>
+          <div style={{ fontSize:"0.9rem",color:"#00e5ff",marginBottom:"0.25rem" }}>◉ 链接已发送</div>
+          <p style={{ fontSize:"0.8rem",color:"rgba(74,85,128,0.8)" }}>
+            请查看 <strong style={{ color:"#dde4ff" }}>{email}</strong> 的邮箱
+          </p>
+        </div>
       ) : (
-        <form onSubmit={handleEmailSignIn} className="space-y-3">
+        <form onSubmit={handleEmailSignIn} style={{ display:"flex",flexDirection:"column",gap:"0.75rem" }}>
           <input
             type="email"
             placeholder="your@email.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            style={{
+              width:"100%",
+              padding:"0.7rem 0.875rem",
+              background:"rgba(255,255,255,0.03)",
+              border:"1px solid rgba(255,255,255,0.08)",
+              borderRadius:"2px",
+              color:"#dde4ff",
+              fontSize:"0.875rem",
+              letterSpacing:"0.02em",
+              transition:"border-color 0.2s",
+            }}
+            onFocus={e => (e.target.style.borderColor = "rgba(0,229,255,0.5)")}
+            onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            style={{
+              padding:"0.7rem 1rem",
+              background: loading ? "rgba(0,229,255,0.1)" : "rgba(0,229,255,0.15)",
+              border:"1px solid rgba(0,229,255,0.4)",
+              borderRadius:"2px",
+              color:"#00e5ff",
+              fontSize:"0.875rem",
+              fontWeight:600,
+              letterSpacing:"0.1em",
+              textTransform:"uppercase",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.6 : 1,
+              textShadow:"0 0 8px rgba(0,229,255,0.5)",
+              boxShadow:"0 0 15px rgba(0,229,255,0.1)",
+              transition:"all 0.2s",
+            }}
           >
             {loading ? "发送中..." : "发送登录链接"}
           </button>
@@ -69,7 +156,7 @@ export default function LoginPage() {
 
 function GoogleIcon() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24">
+    <svg style={{ width:16,height:16,flexShrink:0 }} viewBox="0 0 24 24">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />

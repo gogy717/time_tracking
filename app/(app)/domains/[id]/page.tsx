@@ -26,33 +26,74 @@ export default async function DomainDetailPage({ params }: Props) {
   const totalMinutes = domain.timeSessions.reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: domain.color }} />
-        <h1 className="text-2xl font-bold text-gray-900">{domain.name}</h1>
+    <div style={{ maxWidth:"36rem",margin:"0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom:"2rem" }}>
+        <div style={{ display:"flex",alignItems:"center",gap:"0.75rem",marginBottom:"0.5rem" }}>
+          <div style={{ width:10,height:10,borderRadius:"50%",background:domain.color,boxShadow:`0 0 8px ${domain.color}`,flexShrink:0 }} />
+          <h1 style={{ fontSize:"1.25rem",fontWeight:700,color:"#dde4ff",letterSpacing:"0.1em",textTransform:"uppercase" }}>
+            {domain.name}
+          </h1>
+        </div>
+        <div style={{ height:1,background:`linear-gradient(90deg,${domain.color}60,transparent 60%)` }} />
       </div>
 
-      <div className="bg-white rounded-xl border p-6">
-        <p className="text-sm text-gray-500">累计时间</p>
-        <p className="text-3xl font-bold text-gray-900 mt-1">{formatDuration(totalMinutes)}</p>
-        <p className="text-sm text-gray-400 mt-1">
-          距 3000 小时：{((totalMinutes / (3000 * 60)) * 100).toFixed(2)}%
+      {/* Stats card */}
+      <div
+        style={{
+          background:"#0c0c1e",
+          border:`1px solid rgba(255,255,255,0.05)`,
+          borderTop:`2px solid ${domain.color}`,
+          borderRadius:"2px",
+          padding:"1.5rem",
+          marginBottom:"1.5rem",
+          boxShadow:`0 -2px 15px ${domain.color}20`,
+          position:"relative",
+        }}
+      >
+        <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:"0.5rem" }}>
+          累计时间
+        </p>
+        <p style={{ fontSize:"2.5rem",fontWeight:700,fontFamily:"var(--font-geist-mono,monospace)",color:domain.color,textShadow:`0 0 15px ${domain.color}60`,lineHeight:1,marginBottom:"0.75rem" }}>
+          {formatDuration(totalMinutes)}
+        </p>
+        <p style={{ fontSize:"0.75rem",color:"rgba(74,85,128,0.6)",letterSpacing:"0.05em" }}>
+          距 3000 小时：
+          <span style={{ color:domain.color }}>{((totalMinutes / (3000 * 60)) * 100).toFixed(2)}%</span>
         </p>
       </div>
 
-      <div className="space-y-2">
-        <h2 className="text-sm font-medium text-gray-500">历史记录</h2>
+      {/* Sessions */}
+      <div>
+        <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.6)",letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:"0.75rem" }}>
+          历史记录
+        </p>
         {domain.timeSessions.length === 0 ? (
-          <p className="text-sm text-gray-400">暂无记录</p>
+          <p style={{ fontSize:"0.875rem",color:"rgba(74,85,128,0.4)",letterSpacing:"0.05em" }}>暂无记录</p>
         ) : (
-          domain.timeSessions.map((s) => (
-            <div key={s.id} className="bg-white rounded-lg border px-4 py-3 flex justify-between text-sm">
-              <span className="text-gray-600">
-                {new Date(s.startTime).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })}
-              </span>
-              <span className="font-medium text-gray-900">{formatDuration(s.durationMinutes ?? 0)}</span>
-            </div>
-          ))
+          <div style={{ display:"flex",flexDirection:"column",gap:"0.375rem" }}>
+            {domain.timeSessions.map(s => (
+              <div
+                key={s.id}
+                style={{
+                  background:"#0c0c1e",
+                  border:"1px solid rgba(255,255,255,0.04)",
+                  borderRadius:"2px",
+                  padding:"0.625rem 1rem",
+                  display:"flex",
+                  justifyContent:"space-between",
+                  alignItems:"center",
+                }}
+              >
+                <span style={{ fontSize:"0.8rem",color:"rgba(74,85,128,0.8)",letterSpacing:"0.05em" }}>
+                  {new Date(s.startTime).toLocaleDateString("zh-CN", { month:"short",day:"numeric" })}
+                </span>
+                <span style={{ fontSize:"0.875rem",fontWeight:600,fontFamily:"var(--font-geist-mono,monospace)",color:"#dde4ff" }}>
+                  {formatDuration(s.durationMinutes ?? 0)}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

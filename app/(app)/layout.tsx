@@ -7,9 +7,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session?.user) redirect("/login");
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div style={{ display:"flex",height:"100vh",background:"#07070e" }}>
       <Sidebar user={session.user} />
-      <main className="flex-1 overflow-auto p-8">{children}</main>
+      <main style={{ flex:1,overflowY:"auto",padding:"2rem 2.5rem" }}>
+        {children}
+      </main>
     </div>
   );
 }

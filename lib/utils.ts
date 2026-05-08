@@ -19,6 +19,18 @@ export function formatTimer(seconds: number): string {
   return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
 }
 
+export function calcWeeklyGoal(
+  totalMinutes: number,
+  targetDate: Date | null,
+  fallback: number
+): number {
+  if (!targetDate) return fallback;
+  const remainingHours = Math.max(0, 10000 - totalMinutes / 60);
+  const remainingWeeks = (targetDate.getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000);
+  if (remainingWeeks <= 0) return fallback;
+  return Math.max(1, Math.ceil(remainingHours / remainingWeeks));
+}
+
 export function getStartOfWeek(): Date {
   const date = new Date();
   date.setHours(0, 0, 0, 0);

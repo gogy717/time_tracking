@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getStartOfWeek } from "@/lib/utils";
+import { getStartOfWeek, calcWeeklyGoal } from "@/lib/utils";
 import ProgressCard from "@/components/dashboard/ProgressCard";
 import WeeklyGoalCard from "@/components/dashboard/WeeklyGoalCard";
 
@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const startOfWeek = getStartOfWeek();
 
   const [user, domains, weekAggregate] = await Promise.all([
-    db.user.findUnique({ where: { id: userId }, select: { weeklyGoalHours: true } }),
+    db.user.findUnique({ where: { id: userId }, select: { weeklyGoalHours: true, goalTargetDate: true } }),
     db.domain.findMany({
       where: { userId, isArchived: false },
       include: {
@@ -25,10 +25,6 @@ export default async function DashboardPage() {
       _sum: { durationMinutes: true },
     }),
   ]);
-
-  const weeklyGoalHours = user?.weeklyGoalHours ?? 10;
-  const thisWeekTotalMinutes = weekAggregate._sum.durationMinutes ?? 0;
-  const weeklyGoalProgress = Math.min((thisWeekTotalMinutes / (weeklyGoalHours * 60)) * 100, 100);
 
   const domainStats = domains.map((domain) => {
     const totalMinutes = domain.timeSessions.reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0);
@@ -47,25 +43,48 @@ export default async function DashboardPage() {
     };
   });
 
+  const totalAllTimeMinutes = domainStats.reduce((sum, d) => sum + d.totalMinutes, 0);
+  const thisWeekTotalMinutes = weekAggregate._sum.durationMinutes ?? 0;
+  const weeklyGoalHours = calcWeeklyGoal(
+    totalAllTimeMinutes,
+    user?.goalTargetDate ?? null,
+    user?.weeklyGoalHours ?? 10
+  );
+  const weeklyGoalProgress = Math.min((thisWeekTotalMinutes / (weeklyGoalHours * 60)) * 100, 100);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">仪表盘</h1>
+    <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+          <span style={{ color: "rgba(0,229,255,0.5)", fontFamily: "monospace" }}>◈</span>
+          <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#dde4ff", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+            仪表盘
+          </h1>
+        </div>
+        <div style={{ height: 1, background: "linear-gradient(90deg,rgba(0,229,255,0.35),transparent 60%)" }} />
+      </div>
 
       <WeeklyGoalCard
         thisWeekMinutes={thisWeekTotalMinutes}
         goalHours={weeklyGoalHours}
         progress={weeklyGoalProgress}
+        targetDate={user?.goalTargetDate ?? null}
+        totalMinutes={totalAllTimeMinutes}
       />
 
-      {domainStats.length === 0 ? (
-        <p className="text-gray-500 text-sm">还没有领域，去「我的领域」创建一个吧。</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {domainStats.map((domain) => (
-            <ProgressCard key={domain.id} domain={domain} />
-          ))}
-        </div>
-      )}
+      <div style={{ marginTop: "1.5rem" }}>
+        {domainStats.length === 0 ? (
+          <p style={{ color: "rgba(74,85,128,0.7)", fontSize: "0.875rem", letterSpacing: "0.05em" }}>
+            还没有领域，去「我的领域」创建一个吧。
+          </p>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: "1rem" }}>
+            {domainStats.map((domain) => (
+              <ProgressCard key={domain.id} domain={domain} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
