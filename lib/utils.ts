@@ -19,6 +19,18 @@ export function formatTimer(seconds: number): string {
   return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
 }
 
+export function predictMilestone(
+  currentMinutes: number,
+  targetHours: number,
+  weeklyAvgMinutes: number
+): Date | null {
+  if (weeklyAvgMinutes <= 0) return null;
+  const remainingMinutes = targetHours * 60 - currentMinutes;
+  if (remainingMinutes <= 0) return null;
+  const msNeeded = (remainingMinutes / weeklyAvgMinutes) * 7 * 24 * 60 * 60 * 1000;
+  return new Date(Date.now() + msNeeded);
+}
+
 export function calcWeeklyGoal(
   totalMinutes: number,
   targetDate: Date | null,

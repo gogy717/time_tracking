@@ -9,12 +9,16 @@ export default function WeeklyGoalCard({
   progress,
   targetDate,
   totalMinutes,
+  predicted10000,
+  weeklyAvgMinutes,
 }: {
   thisWeekMinutes: number;
   goalHours: number;
   progress: number;
   targetDate?: Date | null;
   totalMinutes?: number;
+  predicted10000?: Date | null;
+  weeklyAvgMinutes?: number;
 }) {
   const data = [{ value: Math.min(progress, 100), fill: "#00e5ff" }];
   const remainingHours = Math.max(0, 10000 - (totalMinutes ?? 0) / 60);
@@ -51,34 +55,43 @@ export default function WeeklyGoalCard({
         <div style={{ fontSize: "0.65rem", letterSpacing: "0.25em", color: "rgba(74,85,128,0.7)", textTransform: "uppercase", marginBottom: "0.5rem" }}>
           本周目标
         </div>
-        <p
-          style={{
-            fontSize: "3rem",
-            fontWeight: 800,
-            fontFamily: "var(--font-geist-mono, monospace)",
-            color: "#00e5ff",
-            textShadow: "0 0 15px rgba(0,229,255,0.6), 0 0 30px rgba(0,229,255,0.3)",
-            lineHeight: 1,
-            marginBottom: "0.375rem",
-          }}
-        >
+        <p style={{
+          fontSize: "3rem", fontWeight: 800,
+          fontFamily: "var(--font-geist-mono, monospace)",
+          color: "#00e5ff",
+          textShadow: "0 0 15px rgba(0,229,255,0.6), 0 0 30px rgba(0,229,255,0.3)",
+          lineHeight: 1, marginBottom: "0.375rem",
+        }}>
           {progress.toFixed(0)}%
         </p>
-        <p style={{ fontSize: "0.875rem", color: "rgba(74,85,128,0.9)", marginBottom: "0.5rem" }}>
+        <p style={{ fontSize: "0.875rem", color: "rgba(74,85,128,0.9)", marginBottom: "0.625rem" }}>
           {formatDuration(thisWeekMinutes)}{" "}
           <span style={{ color: "rgba(74,85,128,0.5)" }}>/ {goalHours}h</span>
         </p>
 
-        {targetDate && remainingWeeks !== null && (
-          <div style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.55)", letterSpacing: "0.04em", lineHeight: 1.8 }}>
-            <span style={{ color: "rgba(0,229,255,0.4)" }}>◉ </span>
-            目标 {new Date(targetDate).toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" })}
-            {"  ·  "}
-            剩余 {remainingHours.toFixed(0)}h
-            {"  ·  "}
-            {remainingWeeks.toFixed(0)} 周
-          </div>
-        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+          {targetDate && remainingWeeks !== null && (
+            <div style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.55)", letterSpacing: "0.03em" }}>
+              <span style={{ color: "rgba(0,229,255,0.4)" }}>◉ </span>
+              目标 {new Date(targetDate).toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" })}
+              {"  ·  "}剩余 {remainingHours.toFixed(0)}h{"  ·  "}{remainingWeeks.toFixed(0)} 周
+            </div>
+          )}
+          {weeklyAvgMinutes !== undefined && weeklyAvgMinutes > 0 && (
+            <div style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.55)", letterSpacing: "0.03em" }}>
+              <span style={{ color: "rgba(0,229,255,0.3)" }}>◈ </span>
+              近4周均速 {(weeklyAvgMinutes / 60).toFixed(1)}h/周
+              {predicted10000 && (
+                <>
+                  {"  ·  "}预计 10000h：
+                  <span style={{ color: "#00e5ff" }}>
+                    {new Date(predicted10000).toLocaleDateString("zh-CN", { year: "numeric", month: "long" })}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

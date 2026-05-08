@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "domains" ADD COLUMN     "targetDate" TIMESTAMP(3),
+ADD COLUMN     "targetHours" DOUBLE PRECISION NOT NULL DEFAULT 10000;

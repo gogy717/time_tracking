@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, color, icon, description } = await req.json();
+  const { name, color, icon, description, targetHours } = await req.json();
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
   const domain = await db.domain.create({
@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       color: color ?? "#6366f1",
       icon,
       description,
+      targetHours: typeof targetHours === "number" && targetHours > 0 ? targetHours : 10000,
     },
   });
 

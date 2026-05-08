@@ -17,11 +17,13 @@ export async function PATCH(req: Request, { params }: Params) {
   const updated = await db.domain.update({
     where: { id },
     data: {
-      name: body.name?.trim(),
-      color: body.color,
-      icon: body.icon,
-      description: body.description,
-      isArchived: body.isArchived,
+      ...(body.name !== undefined && { name: body.name.trim() }),
+      ...(body.color !== undefined && { color: body.color }),
+      ...(body.icon !== undefined && { icon: body.icon }),
+      ...(body.description !== undefined && { description: body.description }),
+      ...(body.isArchived !== undefined && { isArchived: body.isArchived }),
+      ...(body.targetHours !== undefined && { targetHours: body.targetHours }),
+      ...(body.targetDate !== undefined && { targetDate: body.targetDate ? new Date(body.targetDate) : null }),
     },
   });
 

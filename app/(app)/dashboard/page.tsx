@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getStartOfWeek, calcWeeklyGoal } from "@/lib/utils";
+import { getStartOfWeek, calcWeeklyGoal, predictMilestone } from "@/lib/utils";
 import ProgressCard from "@/components/dashboard/ProgressCard";
 import WeeklyGoalCard from "@/components/dashboard/WeeklyGoalCard";
 
@@ -52,6 +52,14 @@ export default async function DashboardPage() {
   );
   const weeklyGoalProgress = Math.min((thisWeekTotalMinutes / (weeklyGoalHours * 60)) * 100, 100);
 
+  const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
+  const recentAllMinutes = domains
+    .flatMap(d => d.timeSessions)
+    .filter(s => s.startTime >= fourWeeksAgo)
+    .reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0);
+  const globalWeeklyAvg = recentAllMinutes / 4;
+  const predicted10000 = predictMilestone(totalAllTimeMinutes, 10000, globalWeeklyAvg);
+
   return (
     <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
       <div style={{ marginBottom: "2rem" }}>
@@ -70,6 +78,8 @@ export default async function DashboardPage() {
         progress={weeklyGoalProgress}
         targetDate={user?.goalTargetDate ?? null}
         totalMinutes={totalAllTimeMinutes}
+        predicted10000={predicted10000}
+        weeklyAvgMinutes={globalWeeklyAvg}
       />
 
       <div style={{ marginTop: "1.5rem" }}>

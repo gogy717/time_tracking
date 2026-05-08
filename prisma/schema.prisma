@@ -74,6 +74,8 @@ model Domain {
   icon        String?
   description String?
   isArchived  Boolean  @default(false)
+  targetHours Float    @default(10000)
+  targetDate  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
