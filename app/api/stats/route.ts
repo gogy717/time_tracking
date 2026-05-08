@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
-import { getStartOfWeek } from "@/lib/utils";
+import { getStartOfWeek, predictMilestone, calcWeeklyGoal } from "@/lib/utils";
 
 export async function GET() {
   const session = await auth();
@@ -11,7 +11,7 @@ export async function GET() {
   const startOfWeek = getStartOfWeek();
 
   const [user, domains, weekAggregate] = await Promise.all([
-    db.user.findUnique({ where: { id: userId }, select: { weeklyGoalHours: true } }),
+    db.user.findUnique({ where: { id: userId }, select: { weeklyGoalHours: true, goalTargetDate: true } }),
     db.domain.findMany({
       where: { userId, isArchived: false },
       include: {
@@ -27,32 +27,43 @@ export async function GET() {
     }),
   ]);
 
-  const weeklyGoalHours = user?.weeklyGoalHours ?? 10;
   const thisWeekTotalMinutes = weekAggregate._sum.durationMinutes ?? 0;
+  const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
 
   const domainStats = domains.map((domain) => {
     const totalMinutes = domain.timeSessions.reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0);
     const thisWeekMinutes = domain.timeSessions
       .filter((s) => s.startTime >= startOfWeek)
       .reduce((sum, s) => sum + (s.durationMinutes ?? 0), 0);
-
     return {
       id: domain.id,
       name: domain.name,
       color: domain.color,
       icon: domain.icon,
+      targetHours: domain.targetHours,
       totalMinutes,
-      totalHours: totalMinutes / 60,
-      progressTo3000h: Math.min((totalMinutes / (3000 * 60)) * 100, 100),
-      progressTo7000h: Math.min((totalMinutes / (7000 * 60)) * 100, 100),
       thisWeekMinutes,
     };
   });
+
+  const totalAllTimeMinutes = domainStats.reduce((s, d) => s + d.totalMinutes, 0);
+  const recentAllMinutes = domains
+    .flatMap(d => d.timeSessions)
+    .filter(s => s.startTime >= fourWeeksAgo)
+    .reduce((s, ts) => s + (ts.durationMinutes ?? 0), 0);
+  const globalWeeklyAvg = recentAllMinutes / 4;
+  const weeklyGoalHours = calcWeeklyGoal(totalAllTimeMinutes, user?.goalTargetDate ?? null, user?.weeklyGoalHours ?? 10);
+  const weeklyGoalProgress = Math.min((thisWeekTotalMinutes / (weeklyGoalHours * 60)) * 100, 100);
+  const predicted10000 = predictMilestone(totalAllTimeMinutes, 10000, globalWeeklyAvg);
 
   return NextResponse.json({
     domains: domainStats,
     weeklyGoalHours,
     thisWeekTotalMinutes,
-    weeklyGoalProgress: Math.min((thisWeekTotalMinutes / (weeklyGoalHours * 60)) * 100, 100),
+    weeklyGoalProgress,
+    globalWeeklyAvg,
+    predicted10000,
+    targetDate: user?.goalTargetDate ?? null,
+    totalAllTimeMinutes,
   });
 }

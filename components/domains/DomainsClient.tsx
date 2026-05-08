@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LADDER } from "@/lib/milestones";
 
@@ -20,8 +19,7 @@ const COLORS = ["#00e5ff", "#e040fb", "#f59e0b", "#69ff47", "#448aff", "#ff6d00"
 // Preset target options from the ladder
 const TARGET_OPTIONS = LADDER.map(m => ({ hours: m.hours, label: m.label }));
 
-export default function DomainsClient({ domains }: { domains: Domain[] }) {
-  const router = useRouter();
+export default function DomainsClient({ domains, onMutate }: { domains: Domain[]; onMutate?: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState(COLORS[0]);
@@ -42,7 +40,7 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
       setName("");
       setIcon("");
       setTargetHours(10000);
-      router.refresh();
+      onMutate?.();
     } else {
       const data = await res.json();
       alert(data.error);

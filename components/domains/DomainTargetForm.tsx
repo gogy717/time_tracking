@@ -22,7 +22,7 @@ export default function DomainTargetForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const calculated = date ? calcWeeklyGoal(totalMinutes, new Date(date), 10) : null;
+  const calculated = date ? calcWeeklyGoal(totalMinutes, new Date(date), 10, targetHours) : null;
 
   async function handleSave() {
     setSaving(true);

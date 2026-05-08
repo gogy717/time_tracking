@@ -34,10 +34,11 @@ export function predictMilestone(
 export function calcWeeklyGoal(
   totalMinutes: number,
   targetDate: Date | null,
-  fallback: number
+  fallback: number,
+  targetHours = 10000
 ): number {
   if (!targetDate) return fallback;
-  const remainingHours = Math.max(0, 10000 - totalMinutes / 60);
+  const remainingHours = Math.max(0, targetHours - totalMinutes / 60);
   const remainingWeeks = (targetDate.getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000);
   if (remainingWeeks <= 0) return fallback;
   return Math.max(1, Math.ceil(remainingHours / remainingWeeks));

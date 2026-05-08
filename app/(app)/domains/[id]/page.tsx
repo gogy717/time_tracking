@@ -44,7 +44,7 @@ export default async function DomainDetailPage({ params }: Props) {
 
   const { completed, key: keyMilestones } = pick3Milestones(totalHours, domain.targetHours);
 
-  const weeklyGoal = calcWeeklyGoal(totalMinutes, domain.targetDate, 10);
+  const weeklyGoal = calcWeeklyGoal(totalMinutes, domain.targetDate, 10, domain.targetHours);
 
   const recentSessions = domain.timeSessions.slice(0, 50);
 

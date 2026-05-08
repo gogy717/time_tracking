@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { formatDuration } from "@/lib/utils";
+import { LADDER } from "@/lib/milestones";
 import DomainProgressBar from "./DomainProgressBar";
 
 type Domain = {
@@ -9,15 +10,32 @@ type Domain = {
   name: string;
   color: string;
   icon?: string | null;
+  targetHours: number;
   totalMinutes: number;
   thisWeekMinutes: number;
-  progressTo3000h: number;
-  progressTo7000h: number;
 };
 
+function pick2Milestones(currentHours: number, targetHours: number) {
+  // LADDER entries up to targetHours, plus target itself if not in ladder
+  const rungs = LADDER.filter(m => m.hours <= targetHours);
+  const target = rungs[rungs.length - 1]?.hours === targetHours
+    ? rungs[rungs.length - 1]
+    : { hours: targetHours, label: "目标", desc: "" };
+  const all = rungs[rungs.length - 1]?.hours === targetHours ? rungs : [...rungs, target];
+
+  const upcoming = all.filter(m => m.hours > currentHours);
+  if (upcoming.length === 0) return [all[all.length - 1]]; // all done
+  if (upcoming.length === 1) return [upcoming[0]];
+  // next milestone + final target
+  return [upcoming[0], upcoming[upcoming.length - 1]];
+}
+
 export default function ProgressCard({ domain }: { domain: Domain }) {
+  const currentHours = domain.totalMinutes / 60;
+  const milestones = pick2Milestones(currentHours, domain.targetHours);
+
   return (
-    <Link href={`/domains/${domain.id}`} style={{ textDecoration:"none" }}>
+    <Link href={`/domains/${domain.id}`} style={{ textDecoration: "none" }}>
       <div
         style={{
           background: "#0c0c1e",
@@ -39,28 +57,37 @@ export default function ProgressCard({ domain }: { domain: Domain }) {
           (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 30px rgba(0,0,0,0.6), 0 -2px 15px ${domain.color}20`;
         }}
       >
-        {/* Header */}
-        <div style={{ display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"1rem" }}>
-          <div style={{ width:8,height:8,borderRadius:"50%",background:domain.color,boxShadow:`0 0 8px ${domain.color}`,flexShrink:0 }} />
-          <h3 style={{ fontWeight:600,color:"#dde4ff",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:"0.95rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: domain.color, boxShadow: `0 0 8px ${domain.color}`, flexShrink: 0 }} />
+          <h3 style={{ fontWeight: 600, color: "#dde4ff", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.95rem" }}>
             {domain.name}
           </h3>
-          {domain.icon && <span style={{ fontSize:"1rem" }}>{domain.icon}</span>}
+          {domain.icon && <span style={{ fontSize: "1rem" }}>{domain.icon}</span>}
         </div>
 
-        {/* Total time */}
-        <p style={{ fontSize:"1.75rem",fontWeight:700,fontFamily:"var(--font-geist-mono, monospace)",letterSpacing:"0.05em",color:"#dde4ff",marginBottom:"1.25rem" }}>
+        <p style={{ fontSize: "1.75rem", fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", letterSpacing: "0.05em", color: "#dde4ff", marginBottom: "1.25rem" }}>
           {formatDuration(domain.totalMinutes)}
         </p>
 
-        {/* Progress bars */}
-        <div style={{ display:"flex",flexDirection:"column",gap:"0.875rem" }}>
-          <DomainProgressBar label="入门 3000h" progress={domain.progressTo3000h} color={domain.color} current={domain.totalMinutes/60} target={3000} />
-          <DomainProgressBar label="准专家 7000h" progress={domain.progressTo7000h} color={domain.color} current={domain.totalMinutes/60} target={7000} />
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+          {milestones.map(m => {
+            const progress = Math.min((currentHours / m.hours) * 100, 100);
+            const label = `${m.label} ${m.hours >= 1000 ? `${m.hours / 1000}k` : m.hours}h`;
+            return (
+              <DomainProgressBar
+                key={m.hours}
+                label={label}
+                progress={progress}
+                color={domain.color}
+                current={currentHours}
+                target={m.hours}
+              />
+            );
+          })}
         </div>
 
         {domain.thisWeekMinutes > 0 && (
-          <p style={{ marginTop:"0.875rem",fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing:"0.08em" }}>
+          <p style={{ marginTop: "0.875rem", fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.08em" }}>
             本周 +{formatDuration(domain.thisWeekMinutes)}
           </p>
         )}

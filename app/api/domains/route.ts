@@ -9,6 +9,7 @@ export async function GET() {
   const domains = await db.domain.findMany({
     where: { userId: session.user.id, isArchived: false },
     orderBy: { createdAt: "asc" },
+    include: { _count: { select: { timeSessions: { where: { endTime: { not: null } } } } } },
   });
 
   return NextResponse.json(domains);
