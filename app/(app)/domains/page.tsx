@@ -1,12 +1,18 @@
-"use client";
-
-import useSWR from "swr";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import DomainsClient from "@/components/domains/DomainsClient";
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+export default async function DomainsPage() {
+  const session = await auth();
+  const userId = session!.user!.id!;
 
-export default function DomainsPage() {
-  const { data, mutate } = useSWR("/api/domains", fetcher);
+  const domains = await db.domain.findMany({
+    where: { userId },
+    include: {
+      _count: { select: { timeSessions: { where: { endTime: { not: null } } } } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
 
   return (
     <div style={{ maxWidth: "36rem", margin: "0 auto" }}>
@@ -19,7 +25,7 @@ export default function DomainsPage() {
         </div>
         <div style={{ height: 1, background: "linear-gradient(90deg,rgba(0,229,255,0.35),transparent 60%)" }} />
       </div>
-      {data && <DomainsClient domains={data} onMutate={mutate} />}
+      <DomainsClient domains={domains} />
     </div>
   );
 }
