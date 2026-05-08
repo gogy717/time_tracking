@@ -15,18 +15,19 @@ type Domain = {
   thisWeekMinutes: number;
 };
 
-function pick2Milestones(currentHours: number, targetHours: number) {
-  // LADDER entries up to targetHours, plus target itself if not in ladder
-  const rungs = LADDER.filter(m => m.hours <= targetHours);
-  const target = rungs[rungs.length - 1]?.hours === targetHours
-    ? rungs[rungs.length - 1]
-    : { hours: targetHours, label: "目标", desc: "" };
-  const all = rungs[rungs.length - 1]?.hours === targetHours ? rungs : [...rungs, target];
+function pick2Milestones(currentHours: number, targetHours: number): { hours: number; label: string }[] {
+  const safeTarget = (typeof targetHours === "number" && targetHours > 0) ? targetHours : 10000;
+  const rungs = LADDER.filter(m => m.hours <= safeTarget);
+  const lastRung = rungs[rungs.length - 1];
+  const targetEntry = lastRung?.hours === safeTarget
+    ? lastRung
+    : { hours: safeTarget, label: "目标", desc: "" };
+  const all = lastRung?.hours === safeTarget ? rungs : [...rungs, targetEntry];
+  if (all.length === 0) return [{ hours: safeTarget, label: "目标" }];
 
   const upcoming = all.filter(m => m.hours > currentHours);
-  if (upcoming.length === 0) return [all[all.length - 1]]; // all done
+  if (upcoming.length === 0) return [all[all.length - 1]];
   if (upcoming.length === 1) return [upcoming[0]];
-  // next milestone + final target
   return [upcoming[0], upcoming[upcoming.length - 1]];
 }
 
