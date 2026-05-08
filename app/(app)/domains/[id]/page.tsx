@@ -103,7 +103,7 @@ export default async function DomainDetailPage({ params }: Props) {
                 color: "#69ff47",
                 letterSpacing: "0.04em",
               }}>
-                ✓ {m.hours >= 1000 ? `${m.hours / 1000}k` : m.hours}h {m.label}
+                ✓ {m.hours >= 1000 ? `${m.hours / 1000}k` : (m.hours ?? "?")}h {m.label}
               </span>
             ))}
           </div>

@@ -26,27 +26,34 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
   const [icon, setIcon] = useState("");
   const [targetHours, setTargetHours] = useState(10000);
   const [loading, setLoading] = useState(false);
+  const [createError, setCreateError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch("/api/domains", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, color, icon: icon || undefined, targetHours }),
-    });
-    if (res.ok) {
-      setShowForm(false);
-      setName("");
-      setIcon("");
-      setTargetHours(10000);
-      router.refresh();
-    } else {
-      const data = await res.json();
-      alert(data.error);
+    setCreateError("");
+    try {
+      const res = await fetch("/api/domains", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color, icon: icon || undefined, targetHours }),
+      });
+      if (res.ok) {
+        setShowForm(false);
+        setName("");
+        setIcon("");
+        setTargetHours(10000);
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({ error: "请求失败" }));
+        setCreateError(data.error ?? "创建失败");
+      }
+    } catch {
+      setCreateError("网络错误，请重试");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function handleDelete(id: string, domainName: string) {
@@ -142,8 +149,12 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
             </div>
           </div>
 
+          {createError && (
+            <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "-0.25rem" }}>{createError}</p>
+          )}
+
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button type="button" onClick={() => setShowForm(false)}
+            <button type="button" onClick={() => { setShowForm(false); setCreateError(""); }}
               style={{ flex: 1, padding: "0.6rem", background: "transparent", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "2px", color: "rgba(74,85,128,0.8)", fontSize: "0.875rem", cursor: "pointer" }}>
               取消
             </button>

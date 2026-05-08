@@ -21,8 +21,10 @@ export interface MilestoneResult {
 }
 
 export function pick3Milestones(currentHours: number, targetHours: number): MilestoneResult {
+  const safeTarget = (typeof targetHours === "number" && targetHours > 0) ? targetHours : 10000;
   // Get all milestones up to targetHours
-  let relevant = LADDER.filter(m => m.hours <= targetHours);
+  let relevant = LADDER.filter(m => m.hours <= safeTarget);
+  targetHours = safeTarget;
   // If targetHours isn't in the standard ladder, add it
   if (!relevant.find(m => m.hours === targetHours)) {
     // Find nearest label
