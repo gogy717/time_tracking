@@ -1,124 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { formatTimer } from "@/lib/utils";
+import { useTimer } from "@/components/timer/TimerProvider";
 
-type Domain = { id: string; name: string; color: string };
-type ActiveSession = { id: string; startTime: Date; domain: Domain } | null;
+export default function TimerClient() {
+  const {
+    domains,
+    selectedId,
+    setSelectedId,
+    active,
+    elapsed,
+    status,
+    error,
+    startTimer,
+    stopTimer,
+  } = useTimer();
 
-export default function TimerClient({
-  domains,
-  activeSession,
-}: {
-  domains: Domain[];
-  activeSession: ActiveSession;
-}) {
-  const router = useRouter();
-  const [selectedId, setSelectedId] = useState(domains[0]?.id ?? "");
-  const [sessionId, setSessionId] = useState(activeSession?.id ?? null);
-  const [startTime, setStartTime] = useState<Date | null>(
-    activeSession ? new Date(activeSession.startTime) : null
-  );
-  const [elapsed, setElapsed] = useState(
-    activeSession ? Math.floor((Date.now() - new Date(activeSession.startTime).getTime()) / 1000) : 0
-  );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [isRefreshing, startRefresh] = useTransition();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  // Tracks the confirmed server session ID for sendBeacon (separate from optimistic state)
-  const confirmedIdRef = useRef<string | null>(activeSession?.id ?? null);
-
-  useEffect(() => {
-    if (startTime) {
-      intervalRef.current = setInterval(() => {
-        setElapsed(Math.floor((Date.now() - startTime.getTime()) / 1000));
-      }, 1000);
-    }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [startTime]);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const handler = () => {
-      const id = confirmedIdRef.current;
-      if (id) navigator.sendBeacon("/api/timer/stop", JSON.stringify({ sessionId: id }));
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [sessionId]);
-
-  async function handleStart() {
-    setLoading(true);
-    setError("");
-    setSessionId("__opt__");
-    setStartTime(new Date());
-    try {
-      const res = await fetch("/api/timer/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domainId: selectedId }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        confirmedIdRef.current = data.sessionId;
-        setSessionId(data.sessionId);
-        setStartTime(new Date(data.startTime));
-        startRefresh(() => router.refresh());
-      } else {
-        confirmedIdRef.current = null;
-        setSessionId(null);
-        setStartTime(null);
-        setElapsed(0);
-        setError(data.error ?? "启动失败，请重试");
-      }
-    } catch {
-      confirmedIdRef.current = null;
-      setSessionId(null);
-      setStartTime(null);
-      setElapsed(0);
-      setError("网络错误，请重试");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleStop() {
-    const id = confirmedIdRef.current ?? sessionId;
-    if (!id || id === "__opt__") return;
-    const previousSessionId = sessionId;
-    const previousStartTime = startTime;
-    confirmedIdRef.current = null;
-    setLoading(true);
-    setError("");
-    setSessionId(null);
-    setStartTime(null);
-    setElapsed(0);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    try {
-      const res = await fetch("/api/timer/stop", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: id }),
-      });
-      if (!res.ok) throw new Error("stop failed");
-      startRefresh(() => router.refresh());
-    } catch {
-      confirmedIdRef.current = id;
-      setSessionId(previousSessionId);
-      setStartTime(previousStartTime);
-      setError("停止失败，计时仍在继续");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const isRunning = !!sessionId;
-  const activeDomain = isRunning
-    ? (activeSession?.domain ?? domains.find((d) => d.id === selectedId))
-    : null;
-  const glowColor = isRunning && activeDomain ? activeDomain.color : "#00e5ff";
+  const isBusy = status === "starting" || status === "stopping";
+  const activeDomain = active?.domain ?? domains.find((d) => d.id === selectedId) ?? null;
+  const glowColor = activeDomain?.color ?? "#00e5ff";
+  const isRunning = !!active;
 
   return (
     <div
@@ -135,11 +36,9 @@ export default function TimerClient({
         position: "relative",
       }}
     >
-      {/* Corner decorations */}
       <span style={{ position:"absolute",top:-1,left:-1,width:14,height:14,borderTop:`2px solid ${glowColor}`,borderLeft:`2px solid ${glowColor}`,transition:"border-color 0.4s" }} />
       <span style={{ position:"absolute",bottom:-1,right:-1,width:14,height:14,borderBottom:`2px solid ${glowColor}`,borderRight:`2px solid ${glowColor}`,transition:"border-color 0.4s" }} />
 
-      {/* Timer display */}
       <div
         style={{
           fontSize: "4.5rem",
@@ -164,8 +63,8 @@ export default function TimerClient({
             <strong style={{ color:glowColor,textShadow:`0 0 8px ${glowColor}60` }}>{activeDomain?.name}</strong>
           </div>
           <button
-            onClick={handleStop}
-            disabled={loading}
+            onClick={stopTimer}
+            disabled={isBusy || active.id === "__optimistic__"}
             style={{
               padding:"0.75rem 2.5rem",
               background:"rgba(255,23,68,0.1)",
@@ -176,14 +75,14 @@ export default function TimerClient({
               fontWeight:600,
               letterSpacing:"0.15em",
               textTransform:"uppercase",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.5 : 1,
+              cursor: isBusy ? "not-allowed" : "pointer",
+              opacity: isBusy ? 0.5 : 1,
               textShadow:"0 0 8px rgba(255,23,68,0.5)",
               boxShadow:"0 0 15px rgba(255,23,68,0.1)",
               transition:"all 0.2s",
             }}
           >
-            {loading ? "停止中..." : "停止"}
+            {status === "stopping" ? "停止中..." : "停止"}
           </button>
         </div>
       ) : (
@@ -191,6 +90,7 @@ export default function TimerClient({
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
+            disabled={isBusy}
             style={{
               width:"100%",
               padding:"0.7rem 0.875rem",
@@ -199,7 +99,7 @@ export default function TimerClient({
               borderRadius:"2px",
               color:"#dde4ff",
               fontSize:"0.875rem",
-              cursor:"pointer",
+              cursor: isBusy ? "wait" : "pointer",
               appearance:"none",
               backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5580' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
               backgroundRepeat:"no-repeat",
@@ -213,8 +113,8 @@ export default function TimerClient({
             )}
           </select>
           <button
-            onClick={handleStart}
-            disabled={loading || !selectedId}
+            onClick={startTimer}
+            disabled={isBusy || !selectedId}
             style={{
               padding:"0.75rem 2rem",
               background:"rgba(0,229,255,0.1)",
@@ -225,18 +125,19 @@ export default function TimerClient({
               fontWeight:600,
               letterSpacing:"0.15em",
               textTransform:"uppercase",
-              cursor: (loading || !selectedId) ? "not-allowed" : "pointer",
-              opacity: (loading || !selectedId) ? 0.4 : 1,
+              cursor: (isBusy || !selectedId) ? "not-allowed" : "pointer",
+              opacity: (isBusy || !selectedId) ? 0.4 : 1,
               textShadow:"0 0 8px rgba(0,229,255,0.5)",
               boxShadow:"0 0 15px rgba(0,229,255,0.08)",
               transition:"all 0.2s",
             }}
           >
-            {loading ? "启动中..." : "开始"}
+            {status === "starting" ? "启动中..." : "开始"}
           </button>
         </div>
       )}
-      {isRefreshing && (
+
+      {status === "syncing" && (
         <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.7)", marginTop: "0.75rem" }}>
           正在同步统计...
         </p>

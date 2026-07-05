@@ -12,9 +12,8 @@ const NAV_ITEMS = [
 ];
 
 type User = { name?: string | null; email?: string | null; image?: string | null };
-type Domain = { id: string; name: string; color: string };
 
-export default function Sidebar({ user, domains }: { user: User; domains: Domain[] }) {
+export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname();
 
   return (
@@ -73,7 +72,7 @@ export default function Sidebar({ user, domains }: { user: User; domains: Domain
       </nav>
 
       {/* Mini timer */}
-      <SidebarTimer domains={domains} />
+      <SidebarTimer />
 
       {/* Footer */}
       <div style={{ padding: "0.75rem 1.25rem", borderTop: "1px solid rgba(0,229,255,0.08)", marginTop: "0.5rem" }}>

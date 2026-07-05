@@ -21,7 +21,18 @@ export async function POST(req: Request) {
     where: { userId: session.user.id, endTime: null },
   });
   if (active) {
-    return NextResponse.json({ error: "A timer is already running", sessionId: active.id }, { status: 409 });
+    const activeSession = await db.timeSession.findFirst({
+      where: { id: active.id },
+      select: {
+        id: true,
+        startTime: true,
+        domain: { select: { id: true, name: true, color: true } },
+      },
+    });
+    return NextResponse.json(
+      { error: "A timer is already running", sessionId: active.id, session: activeSession },
+      { status: 409 }
+    );
   }
 
   try {
@@ -31,16 +42,30 @@ export async function POST(req: Request) {
         domainId,
         startTime: new Date(),
       },
+      select: {
+        id: true,
+        startTime: true,
+        domain: { select: { id: true, name: true, color: true } },
+      },
     });
 
-    return NextResponse.json({ sessionId: timeSession.id, startTime: timeSession.startTime }, { status: 201 });
+    return NextResponse.json({
+      sessionId: timeSession.id,
+      startTime: timeSession.startTime,
+      session: timeSession,
+    }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       const activeSession = await db.timeSession.findFirst({
         where: { userId: session.user.id, endTime: null },
+        select: {
+          id: true,
+          startTime: true,
+          domain: { select: { id: true, name: true, color: true } },
+        },
       });
       return NextResponse.json(
-        { error: "A timer is already running", sessionId: activeSession?.id },
+        { error: "A timer is already running", sessionId: activeSession?.id, session: activeSession },
         { status: 409 }
       );
     }
