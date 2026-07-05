@@ -13,6 +13,68 @@ import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string }> };
 
+export async function GET(_req: Request, { params }: Params) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const domain = await db.domain.findFirst({
+    where: { id, userId: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      icon: true,
+      targetHours: true,
+      targetDate: true,
+    },
+  });
+  if (!domain) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
+  const [total, recent, sessions] = await Promise.all([
+    db.timeSession.aggregate({
+      where: { domainId: id, userId: session.user.id, endTime: { not: null } },
+      _sum: { durationMinutes: true },
+    }),
+    db.timeSession.aggregate({
+      where: {
+        domainId: id,
+        userId: session.user.id,
+        endTime: { not: null },
+        startTime: { gte: fourWeeksAgo },
+      },
+      _sum: { durationMinutes: true },
+    }),
+    db.timeSession.findMany({
+      where: { domainId: id, userId: session.user.id, endTime: { not: null } },
+      orderBy: { startTime: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        startTime: true,
+        durationMinutes: true,
+        note: true,
+      },
+    }),
+  ]);
+
+  const recentMinutes = recent._sum.durationMinutes ?? 0;
+
+  return NextResponse.json({
+    domain: {
+      ...domain,
+      targetDate: domain.targetDate?.toISOString() ?? null,
+    },
+    initialTotalMinutes: total._sum.durationMinutes ?? 0,
+    weeklyAvgMinutes: recentMinutes / 4,
+    initialSessions: sessions.map((item) => ({
+      ...item,
+      startTime: item.startTime.toISOString(),
+    })),
+  });
+}
+
 export async function PATCH(req: Request, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
