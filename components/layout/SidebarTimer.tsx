@@ -17,10 +17,10 @@ export default function SidebarTimer() {
   } = useTimer();
 
   const isBusy = status === "starting" || status === "stopping";
-  const glowColor = active ? active.domain.color : "#00e5ff";
+  const glowColor = active ? active.domain.color : "#548373";
 
   return (
-    <div style={{ padding: "0.75rem 0.75rem 0", borderTop: "1px solid rgba(0,229,255,0.08)" }}>
+    <div style={{ padding: "0.75rem", borderTop: "1px solid rgba(110,92,70,0.10)" }}>
       {!active && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <select
@@ -30,10 +30,10 @@ export default function SidebarTimer() {
             style={{
               width: "100%",
               padding: "0.4rem 0.5rem",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              borderRadius: "2px",
-              color: "rgba(180,190,220,0.7)",
+              background: "#fffaf1",
+              border: "1px solid rgba(110,92,70,0.16)",
+              borderRadius: "12px",
+              color: "#7a6c5d",
               fontSize: "0.75rem",
               appearance: "none",
               cursor: isBusy ? "wait" : "pointer",
@@ -50,16 +50,16 @@ export default function SidebarTimer() {
             style={{
               width: "100%",
               padding: "0.45rem",
-              background: "rgba(0,229,255,0.08)",
-              border: "1px solid rgba(0,229,255,0.25)",
-              borderRadius: "2px",
-              color: "#00e5ff",
+              background: "#548373",
+              border: "1px solid #548373",
+              borderRadius: "12px",
+              color: "#fffdf8",
               fontSize: "0.75rem",
               fontWeight: 600,
-              letterSpacing: "0.1em",
+              letterSpacing: 0,
               cursor: (isBusy || !selectedId) ? "not-allowed" : "pointer",
               opacity: (isBusy || !selectedId) ? 0.45 : 1,
-              textShadow: "0 0 6px rgba(0,229,255,0.4)",
+              boxShadow: "0 8px 18px rgba(84,131,115,0.18)",
             }}
           >
             {status === "starting" ? "启动中..." : "▶ 开始计时"}
@@ -70,7 +70,7 @@ export default function SidebarTimer() {
       {active && (
         <div>
           <div style={{ marginBottom: "0.375rem" }}>
-            <div style={{ fontSize: "0.6rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.1em", marginBottom: "0.2rem" }}>
+            <div style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.2rem" }}>
               <span style={{ color: glowColor, marginRight: "0.25rem" }}>●</span>
               {active.domain.name}
             </div>
@@ -79,8 +79,7 @@ export default function SidebarTimer() {
               fontFamily: "var(--font-geist-mono, monospace)",
               fontWeight: 700,
               color: glowColor,
-              textShadow: `0 0 10px ${glowColor}80`,
-              letterSpacing: "0.05em",
+              letterSpacing: 0,
               lineHeight: 1,
             }}>
               {formatTimer(elapsed)}
@@ -92,13 +91,13 @@ export default function SidebarTimer() {
             style={{
               width: "100%",
               padding: "0.4rem",
-              background: "rgba(255,23,68,0.08)",
-              border: "1px solid rgba(255,23,68,0.3)",
-              borderRadius: "2px",
-              color: "#ff1744",
+              background: "#fff1ef",
+              border: "1px solid rgba(201,95,87,0.25)",
+              borderRadius: "12px",
+              color: "#c95f57",
               fontSize: "0.75rem",
               fontWeight: 600,
-              letterSpacing: "0.08em",
+              letterSpacing: 0,
               cursor: isBusy ? "not-allowed" : "pointer",
               opacity: isBusy ? 0.5 : 1,
             }}
@@ -109,12 +108,12 @@ export default function SidebarTimer() {
       )}
 
       {status === "syncing" && (
-        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "rgba(74,85,128,0.65)", lineHeight: 1.4 }}>
+        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "#8f806f", lineHeight: 1.4 }}>
           正在同步...
         </p>
       )}
       {error && (
-        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "#ff1744", lineHeight: 1.4 }}>
+        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "#c95f57", lineHeight: 1.4 }}>
           {error}
         </p>
       )}

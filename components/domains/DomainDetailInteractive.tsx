@@ -36,6 +36,13 @@ function fmtDate(date: Date | null) {
   return new Date(date).toLocaleDateString("zh-CN", { year: "numeric", month: "long" });
 }
 
+const cardStyle = {
+  background: "#fffdf8",
+  border: "1px solid rgba(110,92,70,0.12)",
+  borderRadius: "18px",
+  boxShadow: "0 14px 35px rgba(115,94,64,0.08)",
+} as const;
+
 export default function DomainDetailInteractive({
   domainId, domainColor, targetHours, targetDate,
   initialTotalMinutes, weeklyAvgMinutes, initialSessions,
@@ -160,10 +167,10 @@ export default function DomainDetailInteractive({
 
   const inputStyle = {
     padding: "0.6rem 0.875rem",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "2px",
-    color: "#dde4ff",
+    background: "#fffaf1",
+    border: "1px solid rgba(110,92,70,0.18)",
+    borderRadius: "12px",
+    color: "#2f2a24",
     fontSize: "0.875rem",
     width: "100%",
     transition: "border-color 0.2s",
@@ -173,29 +180,29 @@ export default function DomainDetailInteractive({
     <>
       {/* Stats row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
-        <div style={{ background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)", borderTop: `2px solid ${domainColor}`, borderRadius: "2px", padding: "1rem", boxShadow: `0 -2px 10px ${domainColor}15` }}>
-          <p style={{ fontSize: "0.6rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.375rem" }}>累计时间</p>
-          <p style={{ fontSize: "1.75rem", fontWeight: 700, fontFamily: "var(--font-geist-mono,monospace)", color: domainColor, textShadow: `0 0 12px ${domainColor}50`, lineHeight: 1 }}>
+        <div style={{ ...cardStyle, borderTop: `4px solid ${domainColor}`, padding: "1rem" }}>
+          <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>累计时间</p>
+          <p style={{ fontSize: "1.75rem", fontWeight: 800, fontFamily: "var(--font-geist-mono,monospace)", color: domainColor, lineHeight: 1 }}>
             {formatDuration(totalMinutes)}
           </p>
         </div>
-        <div style={{ background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "2px", padding: "1rem" }}>
-          <p style={{ fontSize: "0.6rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.375rem" }}>近4周均速</p>
-          <p style={{ fontSize: "1.75rem", fontWeight: 700, fontFamily: "var(--font-geist-mono,monospace)", color: "#dde4ff", lineHeight: 1 }}>
+        <div style={{ ...cardStyle, padding: "1rem" }}>
+          <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>近4周均速</p>
+          <p style={{ fontSize: "1.75rem", fontWeight: 800, fontFamily: "var(--font-geist-mono,monospace)", color: "#2f2a24", lineHeight: 1 }}>
             {weeklyAvgMinutes > 0 ? `${(weeklyAvgMinutes / 60).toFixed(1)}` : "—"}
           </p>
-          {weeklyAvgMinutes > 0 && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.5)" }}>h / 周</p>}
+          {weeklyAvgMinutes > 0 && <p style={{ fontSize: "0.7rem", color: "#8f806f" }}>h / 周</p>}
         </div>
       </div>
 
       {/* Milestones */}
-      <div style={{ background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "2px", padding: "1.25rem", marginBottom: "1rem" }}>
-        <p style={{ fontSize: "0.6rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.875rem" }}>里程碑进度</p>
+      <div style={{ ...cardStyle, padding: "1.25rem", marginBottom: "1rem" }}>
+        <p style={{ fontSize: "0.72rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.875rem" }}>里程碑进度</p>
 
         {completed.length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginBottom: "1rem" }}>
             {completed.map(m => (
-              <span key={m.hours} style={{ padding: "0.2rem 0.5rem", background: "rgba(105,255,71,0.06)", border: "1px solid rgba(105,255,71,0.2)", borderRadius: "2px", fontSize: "0.65rem", color: "#69ff47", letterSpacing: "0.04em" }}>
+              <span key={m.hours} style={{ padding: "0.22rem 0.56rem", background: "#e8f4e8", border: "1px solid rgba(79,143,101,0.22)", borderRadius: "999px", fontSize: "0.65rem", color: "#4f8f65", letterSpacing: 0 }}>
                 ✓ {m.hours >= 1000 ? `${m.hours / 1000}k` : (m.hours ?? "?")}h {m.label}
               </span>
             ))}
@@ -203,8 +210,8 @@ export default function DomainDetailInteractive({
         )}
 
         {keyMilestones.length === 0 ? (
-          <p style={{ fontSize: "0.8rem", color: "#69ff47", textShadow: "0 0 8px rgba(105,255,71,0.4)" }}>
-            ◉ 已达成目标 {targetHours >= 1000 ? `${targetHours / 1000}k` : targetHours}h！
+          <p style={{ fontSize: "0.82rem", color: "#4f8f65" }}>
+            ● 已达成目标 {targetHours >= 1000 ? `${targetHours / 1000}k` : targetHours}h！
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
@@ -212,25 +219,25 @@ export default function DomainDetailInteractive({
               const progress = Math.min(100, (totalHours / m.hours) * 100);
               const predicted = predictMilestone(totalMinutes, m.hours, weeklyAvgMinutes);
               const isTarget = m.hours === targetHours;
-              const accent = isTarget ? domainColor : "rgba(0,229,255,0.8)";
+              const accent = isTarget ? domainColor : "#548373";
               return (
-                <div key={m.hours} style={{ background: isTarget ? `rgba(${hexToRgb(domainColor)},0.04)` : "rgba(255,255,255,0.02)", border: `1px solid ${isTarget ? `${domainColor}30` : "rgba(255,255,255,0.06)"}`, borderRadius: "2px", padding: "0.875rem 1rem" }}>
+                <div key={m.hours} style={{ background: isTarget ? `rgba(${hexToRgb(domainColor)},0.08)` : "#fffaf1", border: `1px solid ${isTarget ? `${domainColor}33` : "rgba(110,92,70,0.12)"}`, borderRadius: "16px", padding: "0.875rem 1rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
                     <div>
-                      <span style={{ fontSize: "0.75rem", fontWeight: 600, color: accent, textShadow: `0 0 6px ${accent}60` }}>
+                      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: accent }}>
                         {m.hours >= 1000 ? `${m.hours / 1000}k` : m.hours}h
                       </span>
-                      <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "#dde4ff" }}>{m.label}</span>
+                      <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "#2f2a24" }}>{m.label}</span>
                       {isTarget && <span style={{ marginLeft: "0.375rem", fontSize: "0.6rem", color: accent, opacity: 0.7 }}>目标</span>}
-                      <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.5)", marginTop: "0.1rem" }}>{m.desc}</p>
+                      <p style={{ fontSize: "0.65rem", color: "#8f806f", marginTop: "0.1rem" }}>{m.desc}</p>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <span style={{ fontSize: "0.75rem", fontWeight: 700, fontFamily: "monospace", color: accent }}>{progress.toFixed(1)}%</span>
-                      {predicted && <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.5)", marginTop: "0.1rem" }}>≈ {fmtDate(predicted)}</p>}
+                      {predicted && <p style={{ fontSize: "0.65rem", color: "#8f806f", marginTop: "0.1rem" }}>≈ {fmtDate(predicted)}</p>}
                     </div>
                   </div>
-                  <div style={{ height: "2px", background: "rgba(255,255,255,0.05)", borderRadius: "1px", overflow: "hidden" }}>
-                    <div style={{ width: `${progress}%`, height: "100%", background: accent, boxShadow: `0 0 6px ${accent}`, transition: "width 0.4s ease" }} />
+                  <div style={{ height: "6px", background: "rgba(110,92,70,0.10)", borderRadius: "999px", overflow: "hidden" }}>
+                    <div style={{ width: `${progress}%`, height: "100%", background: accent, transition: "width 0.4s ease" }} />
                   </div>
                 </div>
               );
@@ -252,38 +259,35 @@ export default function DomainDetailInteractive({
       <div style={{ marginBottom: "1rem" }}>
         <button
           onClick={() => { setAddOpen(!addOpen); setAddError(""); }}
-          style={{ padding: "0.5rem 1rem", background: "transparent", border: `1px dashed ${addOpen ? "rgba(224,64,251,0.5)" : "rgba(255,255,255,0.1)"}`, borderRadius: "2px", color: addOpen ? "#e040fb" : "rgba(74,85,128,0.7)", fontSize: "0.8rem", letterSpacing: "0.08em", cursor: "pointer", transition: "all 0.2s" }}>
+          style={{ padding: "0.56rem 1rem", background: addOpen ? "#f5edf8" : "#fffdf8", border: `1px dashed ${addOpen ? "rgba(154,123,184,0.42)" : "rgba(110,92,70,0.18)"}`, borderRadius: "999px", color: addOpen ? "#7c5b99" : "#7a6c5d", fontSize: "0.82rem", letterSpacing: 0, cursor: "pointer", transition: "all 0.2s" }}>
           + 添加历史时间
         </button>
 
         {addOpen && (
-          <form onSubmit={handleAdd} style={{ marginTop: "0.75rem", background: "#0c0c1e", border: "1px solid rgba(224,64,251,0.2)", borderRadius: "2px", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem", position: "relative" }}>
-            <span style={{ position: "absolute", top: -1, left: -1, width: 12, height: 12, borderTop: "2px solid #e040fb", borderLeft: "2px solid #e040fb" }} />
-            <span style={{ position: "absolute", bottom: -1, right: -1, width: 12, height: 12, borderBottom: "2px solid #e040fb", borderRight: "2px solid #e040fb" }} />
-
+          <form onSubmit={handleAdd} style={{ ...cardStyle, marginTop: "0.75rem", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem", position: "relative" }}>
             <div>
-              <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.375rem" }}>小时数</p>
+              <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>小时数</p>
               <input type="number" step="0.5" min="0.5" placeholder="例如：150" value={addHours} onChange={e => setAddHours(e.target.value)} required style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = "rgba(224,64,251,0.5)")}
-                onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
+                onFocus={e => (e.target.style.borderColor = "rgba(154,123,184,0.48)")}
+                onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")} />
             </div>
             <div>
-              <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.375rem" }}>日期</p>
-              <input type="date" value={addDate} onChange={e => setAddDate(e.target.value)} style={{ ...inputStyle, colorScheme: "dark" }}
+              <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>日期</p>
+              <input type="date" value={addDate} onChange={e => setAddDate(e.target.value)} style={{ ...inputStyle, colorScheme: "light" }}
                 max={new Date().toISOString().split("T")[0]}
-                onFocus={e => (e.target.style.borderColor = "rgba(224,64,251,0.5)")}
-                onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
+                onFocus={e => (e.target.style.borderColor = "rgba(154,123,184,0.48)")}
+                onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")} />
             </div>
             <div>
-              <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.375rem" }}>备注（可选）</p>
+              <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>备注（可选）</p>
               <input type="text" placeholder="例如：入门阶段积累" value={addNote} onChange={e => setAddNote(e.target.value)} style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = "rgba(224,64,251,0.5)")}
-                onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
+                onFocus={e => (e.target.style.borderColor = "rgba(154,123,184,0.48)")}
+                onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")} />
             </div>
-            {addError && <p style={{ fontSize: "0.75rem", color: "#ff1744" }}>{addError}</p>}
+            {addError && <p style={{ fontSize: "0.75rem", color: "#c95f57" }}>{addError}</p>}
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button type="button" onClick={() => setAddOpen(false)} style={{ flex: 1, padding: "0.6rem", background: "transparent", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "2px", color: "rgba(74,85,128,0.7)", fontSize: "0.875rem", cursor: "pointer" }}>取消</button>
-              <button type="submit" disabled={addLoading} style={{ flex: 1, padding: "0.6rem", background: "rgba(224,64,251,0.1)", border: "1px solid rgba(224,64,251,0.4)", borderRadius: "2px", color: "#e040fb", fontSize: "0.875rem", fontWeight: 600, letterSpacing: "0.08em", cursor: addLoading ? "not-allowed" : "pointer", opacity: addLoading ? 0.5 : 1, textShadow: "0 0 8px rgba(224,64,251,0.4)" }}>
+              <button type="button" onClick={() => setAddOpen(false)} style={{ flex: 1, padding: "0.6rem", background: "#fffaf1", border: "1px solid rgba(110,92,70,0.16)", borderRadius: "999px", color: "#7a6c5d", fontSize: "0.875rem", cursor: "pointer" }}>取消</button>
+              <button type="submit" disabled={addLoading} style={{ flex: 1, padding: "0.6rem", background: "#9a7bb8", border: "1px solid #9a7bb8", borderRadius: "999px", color: "#fffdf8", fontSize: "0.875rem", fontWeight: 700, letterSpacing: 0, cursor: addLoading ? "not-allowed" : "pointer", opacity: addLoading ? 0.5 : 1, boxShadow: "0 8px 18px rgba(154,123,184,0.20)" }}>
                 {addLoading ? "添加中..." : "确认添加"}
               </button>
             </div>
@@ -293,28 +297,28 @@ export default function DomainDetailInteractive({
 
       {/* Session list */}
       <div>
-        <p style={{ fontSize: "0.6rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "0.75rem" }}>历史记录</p>
+        <p style={{ fontSize: "0.72rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.75rem" }}>历史记录</p>
         {sessions.length === 0 ? (
-          <p style={{ fontSize: "0.875rem", color: "rgba(74,85,128,0.4)" }}>暂无记录</p>
+          <p style={{ fontSize: "0.875rem", color: "#a29382" }}>暂无记录</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
             {sessions.map(s => (
-              <div key={s.id} style={{ background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.04)", borderRadius: "2px", padding: "0.55rem 0.875rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", opacity: deleting === s.id ? 0.4 : 1, transition: "opacity 0.15s" }}>
+              <div key={s.id} style={{ background: "#fffdf8", border: "1px solid rgba(110,92,70,0.10)", borderRadius: "14px", padding: "0.6rem 0.875rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", opacity: deleting === s.id ? 0.4 : 1, transition: "opacity 0.15s" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flex: 1, minWidth: 0 }}>
-                  <span style={{ fontSize: "0.75rem", color: "rgba(74,85,128,0.7)", flexShrink: 0 }}>
+                  <span style={{ fontSize: "0.75rem", color: "#8f806f", flexShrink: 0 }}>
                     {new Date(s.startTime).toLocaleDateString("zh-CN", { month: "short", day: "numeric" })}
                   </span>
-                  {s.note === "手动添加" && <span style={{ fontSize: "0.6rem", color: "rgba(224,64,251,0.4)" }}>手动</span>}
-                  {s.note && s.note !== "手动添加" && <span style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.note}</span>}
+                  {s.note === "手动添加" && <span style={{ fontSize: "0.6rem", color: "#9a7bb8" }}>手动</span>}
+                  {s.note && s.note !== "手动添加" && <span style={{ fontSize: "0.65rem", color: "#a29382", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.note}</span>}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
-                  <span style={{ fontSize: "0.875rem", fontWeight: 600, fontFamily: "var(--font-geist-mono,monospace)", color: "#dde4ff" }}>
+                  <span style={{ fontSize: "0.875rem", fontWeight: 700, fontFamily: "var(--font-geist-mono,monospace)", color: "#2f2a24" }}>
                     {formatDuration(s.durationMinutes ?? 0)}
                   </span>
                   <button onClick={() => handleDelete(s.id)} disabled={deleting === s.id} title="删除"
-                    style={{ background: "none", border: "none", cursor: deleting === s.id ? "not-allowed" : "pointer", color: "rgba(255,23,68,0.3)", fontSize: "0.75rem", padding: "0.15rem 0.3rem", borderRadius: "2px", transition: "color 0.15s", lineHeight: 1 }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,23,68,0.8)")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,23,68,0.3)")}>
+                    style={{ background: "none", border: "none", cursor: deleting === s.id ? "not-allowed" : "pointer", color: "rgba(201,95,87,0.45)", fontSize: "0.75rem", padding: "0.15rem 0.3rem", borderRadius: "8px", transition: "color 0.15s", lineHeight: 1 }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "#c95f57")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "rgba(201,95,87,0.45)")}>
                     ✕
                   </button>
                 </div>
@@ -322,8 +326,8 @@ export default function DomainDetailInteractive({
             ))}
           </div>
         )}
-        {deleteError && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.5rem" }}>{deleteError}</p>}
-        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
+        {deleteError && <p style={{ fontSize: "0.75rem", color: "#c95f57", marginTop: "0.5rem" }}>{deleteError}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "#8f806f", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
     </>
   );

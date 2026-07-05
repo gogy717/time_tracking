@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         domain: activeSession.domain,
       } : null}
     >
-      <div style={{ display: "flex", height: "100vh", background: "#07070e" }}>
+      <div style={{ display: "flex", height: "100vh", background: "linear-gradient(135deg,#fbf6ec 0%,#fffaf1 48%,#eef7f1 100%)" }}>
         <Sidebar user={session.user} />
         <main style={{ flex: 1, overflowY: "auto", padding: "2rem 2.5rem" }}>
           {children}

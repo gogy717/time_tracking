@@ -20,20 +20,20 @@ export default function DashboardPage() {
     <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
       <div style={{ marginBottom: "2rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-          <span style={{ color: "rgba(0,229,255,0.5)", fontFamily: "monospace" }}>◈</span>
-          <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#dde4ff", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          <span style={{ color: "#548373", fontFamily: "monospace" }}>◈</span>
+          <h1 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#2f2a24", letterSpacing: 0 }}>
             仪表盘
           </h1>
         </div>
-        <div style={{ height: 1, background: "linear-gradient(90deg,rgba(0,229,255,0.35),transparent 60%)" }} />
+        <div style={{ height: 1, background: "linear-gradient(90deg,rgba(84,131,115,0.28),transparent 70%)" }} />
       </div>
 
       {isLoading && (
         <div style={{ display: "grid", gap: "1rem" }}>
-          <div style={{ height: 172, background: "#0c0c1e", border: "1px solid rgba(0,229,255,0.12)", borderRadius: 2 }} />
+          <div style={{ height: 172, background: "#fffdf8", border: "1px solid rgba(110,92,70,0.12)", borderRadius: 18 }} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: "1rem" }}>
             {[0, 1, 2].map(i => (
-              <div key={i} style={{ height: 190, background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 2 }} />
+              <div key={i} style={{ height: 190, background: "#fffdf8", border: "1px solid rgba(110,92,70,0.12)", borderRadius: 18 }} />
             ))}
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
           <div style={{ marginTop: "1.5rem" }}>
             {data.domains.length === 0 ? (
-              <p style={{ color: "rgba(74,85,128,0.7)", fontSize: "0.875rem", letterSpacing: "0.05em" }}>
+              <p style={{ color: "#8f806f", fontSize: "0.875rem", letterSpacing: 0 }}>
                 还没有领域，去「我的领域」创建一个吧。
               </p>
             ) : (

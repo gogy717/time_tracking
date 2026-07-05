@@ -38,39 +38,32 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        background: "rgba(10,10,24,0.97)",
-        border: "1px solid rgba(0,229,255,0.2)",
-        borderRadius: "2px",
+        background: "rgba(255,253,248,0.92)",
+        border: "1px solid rgba(110,92,70,0.12)",
+        borderRadius: "24px",
         padding: "2.5rem",
-        boxShadow: "0 0 60px rgba(0,0,0,0.9), 0 0 40px rgba(0,229,255,0.04)",
+        boxShadow: "0 22px 60px rgba(115,94,64,0.12)",
         position: "relative",
+        backdropFilter: "blur(14px)",
       }}
     >
-      {/* Corner brackets */}
-      <span style={{ position:"absolute",top:-1,left:-1,width:16,height:16,borderTop:"2px solid #00e5ff",borderLeft:"2px solid #00e5ff" }} />
-      <span style={{ position:"absolute",top:-1,right:-1,width:16,height:16,borderTop:"2px solid #00e5ff",borderRight:"2px solid #00e5ff" }} />
-      <span style={{ position:"absolute",bottom:-1,left:-1,width:16,height:16,borderBottom:"2px solid #00e5ff",borderLeft:"2px solid #00e5ff" }} />
-      <span style={{ position:"absolute",bottom:-1,right:-1,width:16,height:16,borderBottom:"2px solid #00e5ff",borderRight:"2px solid #00e5ff" }} />
-
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <div style={{ fontSize:"0.65rem",letterSpacing:"0.4em",color:"rgba(0,229,255,0.4)",textTransform:"uppercase",marginBottom:"0.75rem" }}>
-          SYSTEM ACCESS
+        <div style={{ fontSize:"0.72rem",letterSpacing: 0,color:"#8f806f",textTransform:"uppercase",marginBottom:"0.75rem" }}>
+          Focus Studio
         </div>
         <h1
           style={{
             fontSize: "2rem",
             fontWeight: 800,
-            color: "#00e5ff",
-            textShadow: "0 0 15px rgba(0,229,255,0.7), 0 0 30px rgba(0,229,255,0.3)",
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
+            color: "#2f2a24",
+            letterSpacing: 0,
           }}
         >
           时间追踪
         </h1>
-        <div style={{ height:1,background:"linear-gradient(90deg,transparent,rgba(0,229,255,0.4),transparent)",margin:"0.75rem 0 0" }} />
-        <p style={{ fontSize:"0.8rem",color:"rgba(74,85,128,0.9)",marginTop:"0.75rem",letterSpacing:"0.05em" }}>
+        <div style={{ height:1,background:"linear-gradient(90deg,transparent,rgba(84,131,115,0.34),transparent)",margin:"0.75rem 0 0" }} />
+        <p style={{ fontSize:"0.84rem",color:"#7a6c5d",marginTop:"0.75rem",letterSpacing: 0 }}>
           登录以开始记录你的专注时间
         </p>
       </div>
@@ -86,23 +79,23 @@ export default function LoginPage() {
           justifyContent:"center",
           gap:"0.75rem",
           padding:"0.7rem 1rem",
-          background:"rgba(255,255,255,0.03)",
-          border:"1px solid rgba(255,255,255,0.1)",
-          borderRadius:"2px",
-          color:"#dde4ff",
+          background:"#fffdf8",
+          border:"1px solid rgba(110,92,70,0.16)",
+          borderRadius:"14px",
+          color:"#2f2a24",
           fontSize:"0.875rem",
           fontWeight:500,
           cursor: googleLoading || emailLoading ? "wait" : "pointer",
           opacity: googleLoading || emailLoading ? 0.65 : 1,
-          letterSpacing:"0.05em",
+          letterSpacing: 0,
           transition:"all 0.2s",
         }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,229,255,0.4)";
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 15px rgba(0,229,255,0.08)";
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(84,131,115,0.35)";
+          (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 10px 22px rgba(84,131,115,0.10)";
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)";
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(110,92,70,0.16)";
           (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
         }}
       >
@@ -112,17 +105,17 @@ export default function LoginPage() {
 
       {/* Divider */}
       <div style={{ position:"relative",margin:"1.5rem 0",display:"flex",alignItems:"center" }}>
-        <div style={{ flex:1,height:1,background:"rgba(255,255,255,0.06)" }} />
-        <span style={{ padding:"0 0.75rem",fontSize:"0.7rem",color:"rgba(74,85,128,0.6)",letterSpacing:"0.2em" }}>OR</span>
-        <div style={{ flex:1,height:1,background:"rgba(255,255,255,0.06)" }} />
+        <div style={{ flex:1,height:1,background:"rgba(110,92,70,0.12)" }} />
+        <span style={{ padding:"0 0.75rem",fontSize:"0.7rem",color:"#a29382",letterSpacing: 0 }}>OR</span>
+        <div style={{ flex:1,height:1,background:"rgba(110,92,70,0.12)" }} />
       </div>
 
       {/* Email */}
       {sent ? (
-        <div style={{ textAlign:"center",padding:"1rem",border:"1px solid rgba(0,229,255,0.15)",borderRadius:"2px",background:"rgba(0,229,255,0.03)" }}>
-          <div style={{ fontSize:"0.9rem",color:"#00e5ff",marginBottom:"0.25rem" }}>◉ 链接已发送</div>
-          <p style={{ fontSize:"0.8rem",color:"rgba(74,85,128,0.8)" }}>
-            请查看 <strong style={{ color:"#dde4ff" }}>{email}</strong> 的邮箱
+        <div style={{ textAlign:"center",padding:"1rem",border:"1px solid rgba(84,131,115,0.18)",borderRadius:"16px",background:"#e6f1ea" }}>
+          <div style={{ fontSize:"0.9rem",color:"#2f6f61",marginBottom:"0.25rem" }}>● 链接已发送</div>
+          <p style={{ fontSize:"0.8rem",color:"#7a6c5d" }}>
+            请查看 <strong style={{ color:"#2f2a24" }}>{email}</strong> 的邮箱
           </p>
         </div>
       ) : (
@@ -137,34 +130,32 @@ export default function LoginPage() {
             style={{
               width:"100%",
               padding:"0.7rem 0.875rem",
-              background:"rgba(255,255,255,0.03)",
-              border:"1px solid rgba(255,255,255,0.08)",
-              borderRadius:"2px",
-              color:"#dde4ff",
+              background:"#fffaf1",
+              border:"1px solid rgba(110,92,70,0.18)",
+              borderRadius:"14px",
+              color:"#2f2a24",
               fontSize:"0.875rem",
-              letterSpacing:"0.02em",
+              letterSpacing: 0,
               transition:"border-color 0.2s",
             }}
-            onFocus={e => (e.target.style.borderColor = "rgba(0,229,255,0.5)")}
-            onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+            onFocus={e => (e.target.style.borderColor = "rgba(84,131,115,0.5)")}
+            onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")}
           />
           <button
             type="submit"
             disabled={emailLoading || googleLoading}
             style={{
               padding:"0.7rem 1rem",
-              background: emailLoading ? "rgba(0,229,255,0.1)" : "rgba(0,229,255,0.15)",
-              border:"1px solid rgba(0,229,255,0.4)",
-              borderRadius:"2px",
-              color:"#00e5ff",
+              background: "#548373",
+              border:"1px solid #548373",
+              borderRadius:"999px",
+              color:"#fffdf8",
               fontSize:"0.875rem",
               fontWeight:600,
-              letterSpacing:"0.1em",
-              textTransform:"uppercase",
+              letterSpacing: 0,
               cursor: emailLoading || googleLoading ? "not-allowed" : "pointer",
               opacity: emailLoading || googleLoading ? 0.6 : 1,
-              textShadow:"0 0 8px rgba(0,229,255,0.5)",
-              boxShadow:"0 0 15px rgba(0,229,255,0.1)",
+              boxShadow:"0 10px 22px rgba(84,131,115,0.22)",
               transition:"all 0.2s",
             }}
           >
@@ -173,7 +164,7 @@ export default function LoginPage() {
         </form>
       )}
       {error && (
-        <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.75rem", textAlign: "center" }}>
+        <p style={{ fontSize: "0.75rem", color: "#c95f57", marginTop: "0.75rem", textAlign: "center" }}>
           {error}
         </p>
       )}
