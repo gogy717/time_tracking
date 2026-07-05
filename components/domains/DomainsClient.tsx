@@ -16,7 +16,7 @@ type Domain = {
   _count: { timeSessions: number };
 };
 
-const COLORS = ["#00e5ff", "#e040fb", "#f59e0b", "#69ff47", "#448aff", "#ff6d00", "#ff1744"];
+const COLORS = ["#548373", "#d97670", "#e9a94f", "#6d8fbf", "#9a7bb8", "#4f8f65", "#c95f57"];
 const TARGET_OPTIONS = LADDER.map(m => ({ hours: m.hours, label: m.label }));
 
 export default function DomainsClient({ domains }: { domains: Domain[] }) {
@@ -124,10 +124,10 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
   const inputStyle = {
     width: "100%",
     padding: "0.65rem 0.875rem",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "2px",
-    color: "#dde4ff",
+    background: "#fffaf1",
+    border: "1px solid rgba(110,92,70,0.18)",
+    borderRadius: "12px",
+    color: "#2f2a24",
     fontSize: "0.875rem",
     transition: "border-color 0.2s",
   } as const;
@@ -138,12 +138,12 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
         onClick={() => setShowForm(!showForm)}
         style={{
           width: "100%", padding: "0.75rem",
-          background: "transparent",
-          border: `1px dashed ${showForm ? "rgba(0,229,255,0.4)" : "rgba(255,255,255,0.1)"}`,
-          borderRadius: "2px",
-          color: showForm ? "#00e5ff" : "rgba(74,85,128,0.7)",
-          fontSize: "0.875rem", letterSpacing: "0.08em", cursor: "pointer",
-          textShadow: showForm ? "0 0 8px rgba(0,229,255,0.4)" : "none",
+          background: showForm ? "#e6f1ea" : "#fffdf8",
+          border: `1px dashed ${showForm ? "rgba(84,131,115,0.45)" : "rgba(110,92,70,0.18)"}`,
+          borderRadius: "16px",
+          color: showForm ? "#2f6f61" : "#7a6c5d",
+          fontSize: "0.875rem", letterSpacing: 0, cursor: "pointer",
+          boxShadow: showForm ? "0 8px 20px rgba(84,131,115,0.10)" : "0 8px 24px rgba(115,94,64,0.05)",
           transition: "all 0.2s",
         }}
       >
@@ -154,29 +154,27 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
         <form
           onSubmit={handleCreate}
           style={{
-            background: "#0c0c1e", border: "1px solid rgba(0,229,255,0.15)",
-            borderRadius: "2px", padding: "1.25rem",
+            background: "#fffdf8", border: "1px solid rgba(84,131,115,0.20)",
+            borderRadius: "18px", padding: "1.25rem",
             display: "flex", flexDirection: "column", gap: "1rem", position: "relative",
+            boxShadow: "0 16px 35px rgba(115,94,64,0.08)",
           }}
         >
-          <span style={{ position: "absolute", top: -1, left: -1, width: 12, height: 12, borderTop: "2px solid #00e5ff", borderLeft: "2px solid #00e5ff" }} />
-          <span style={{ position: "absolute", bottom: -1, right: -1, width: 12, height: 12, borderBottom: "2px solid #00e5ff", borderRight: "2px solid #00e5ff" }} />
-
           <input placeholder="领域名称（如：钢琴、编程）" value={name} onChange={e => setName(e.target.value)} required style={inputStyle}
-            onFocus={e => (e.target.style.borderColor = "rgba(0,229,255,0.4)")}
-            onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
+            onFocus={e => (e.target.style.borderColor = "rgba(84,131,115,0.5)")}
+            onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")} />
 
           <input placeholder="图标 emoji（可选，如：🎹）" value={icon} onChange={e => setIcon(e.target.value)} style={inputStyle}
-            onFocus={e => (e.target.style.borderColor = "rgba(0,229,255,0.4)")}
-            onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
+            onFocus={e => (e.target.style.borderColor = "rgba(84,131,115,0.5)")}
+            onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")} />
 
           <div>
-            <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>颜色</p>
+            <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.5rem" }}>颜色</p>
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               {COLORS.map(c => (
                 <button key={c} type="button" onClick={() => setColor(c)} style={{
                   width: 24, height: 24, borderRadius: "50%", background: c, padding: 0, cursor: "pointer",
-                  border: color === c ? `2px solid ${c}` : "2px solid transparent",
+                  border: color === c ? `2px solid ${c}` : "2px solid rgba(110,92,70,0.12)",
                   outline: color === c ? `2px solid ${c}40` : "none", outlineOffset: 2,
                   boxShadow: color === c ? `0 0 8px ${c}` : "none", transition: "all 0.15s",
                 }} />
@@ -185,15 +183,14 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
           </div>
 
           <div>
-            <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.5rem" }}>目标</p>
+            <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.5rem" }}>目标</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
               {TARGET_OPTIONS.map(opt => (
                 <button key={opt.hours} type="button" onClick={() => setTargetHours(opt.hours)} style={{
-                  padding: "0.3rem 0.625rem", borderRadius: "2px", fontSize: "0.75rem", cursor: "pointer", transition: "all 0.15s",
-                  background: targetHours === opt.hours ? "rgba(0,229,255,0.15)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${targetHours === opt.hours ? "rgba(0,229,255,0.5)" : "rgba(255,255,255,0.08)"}`,
-                  color: targetHours === opt.hours ? "#00e5ff" : "rgba(74,85,128,0.8)",
-                  textShadow: targetHours === opt.hours ? "0 0 6px rgba(0,229,255,0.4)" : "none",
+                  padding: "0.34rem 0.7rem", borderRadius: "999px", fontSize: "0.75rem", cursor: "pointer", transition: "all 0.15s",
+                  background: targetHours === opt.hours ? "#e6f1ea" : "#fffaf1",
+                  border: `1px solid ${targetHours === opt.hours ? "rgba(84,131,115,0.42)" : "rgba(110,92,70,0.12)"}`,
+                  color: targetHours === opt.hours ? "#2f6f61" : "#7a6c5d",
                 }}>
                   {opt.hours >= 1000 ? `${opt.hours / 1000}k` : opt.hours}h
                   <span style={{ marginLeft: "0.25rem", fontSize: "0.65rem", opacity: 0.7 }}>{opt.label}</span>
@@ -203,18 +200,18 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
           </div>
 
           {createError && (
-            <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "-0.25rem" }}>{createError}</p>
+            <p style={{ fontSize: "0.75rem", color: "#c95f57", marginTop: "-0.25rem" }}>{createError}</p>
           )}
 
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button type="button" onClick={() => { setShowForm(false); setCreateError(""); }}
-              style={{ flex: 1, padding: "0.6rem", background: "transparent", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "2px", color: "rgba(74,85,128,0.8)", fontSize: "0.875rem", cursor: "pointer" }}>
+              style={{ flex: 1, padding: "0.6rem", background: "#fffaf1", border: "1px solid rgba(110,92,70,0.16)", borderRadius: "999px", color: "#7a6c5d", fontSize: "0.875rem", cursor: "pointer" }}>
               取消
             </button>
             <button type="submit" disabled={loading || !name.trim()} style={{
-              flex: 1, padding: "0.6rem", background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.35)",
-              borderRadius: "2px", color: "#00e5ff", fontSize: "0.875rem", fontWeight: 600, letterSpacing: "0.08em",
-              cursor: (loading || !name.trim()) ? "not-allowed" : "pointer", opacity: (loading || !name.trim()) ? 0.5 : 1, textShadow: "0 0 6px rgba(0,229,255,0.4)",
+              flex: 1, padding: "0.6rem", background: "#548373", border: "1px solid #548373",
+              borderRadius: "999px", color: "#fffdf8", fontSize: "0.875rem", fontWeight: 700, letterSpacing: 0,
+              cursor: (loading || !name.trim()) ? "not-allowed" : "pointer", opacity: (loading || !name.trim()) ? 0.55 : 1, boxShadow: "0 8px 18px rgba(84,131,115,0.22)",
             }}>
               {loading ? "创建中..." : "创建"}
             </button>
@@ -245,23 +242,23 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
               <div
                 style={{
                   display: "flex", alignItems: "center", gap: "0.75rem",
-                  background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)",
-                  borderLeft: `3px solid ${domain.color}`, borderRadius: "2px",
+                  background: "#fffdf8", border: "1px solid rgba(110,92,70,0.12)",
+                  borderLeft: `4px solid ${domain.color}`, borderRadius: "18px",
                   padding: "1rem 3rem 1rem 1.25rem",
                   cursor: isPending ? "progress" : "pointer", transition: "all 0.2s",
-                  boxShadow: `-2px 0 10px ${domain.color}15`,
+                  boxShadow: `0 14px 34px rgba(115,94,64,0.08), -2px 0 10px ${domain.color}18`,
                   opacity: deleting === domain.id || isPending ? 0.55 : 1,
                 }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "#10102a"}
-                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#0c0c1e"}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "#fff8e8"}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fffdf8"}
               >
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: domain.color, boxShadow: `0 0 6px ${domain.color}`, flexShrink: 0 }} />
-                <span style={{ fontWeight: 500, color: "#dde4ff", flex: 1, fontSize: "0.95rem" }}>{domain.name}</span>
+                <span style={{ fontWeight: 700, color: "#2f2a24", flex: 1, fontSize: "0.95rem" }}>{domain.name}</span>
                 {domain.icon && <span>{domain.icon}</span>}
                 <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.5)" }}>目标 {tLabel}h</span>
+                  <span style={{ fontSize: "0.7rem", color: "#8f806f" }}>目标 {tLabel}h</span>
                   <br />
-                  <span style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.4)" }}>{isPending ? "同步中" : `${domain._count.timeSessions} 次`}</span>
+                  <span style={{ fontSize: "0.65rem", color: "#a29382" }}>{isPending ? "同步中" : `${domain._count.timeSessions} 次`}</span>
                 </div>
               </div>
             </Link>
@@ -272,11 +269,11 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
               style={{
                 position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
                 background: "none", border: "none", cursor: (deleting === domain.id || isPending) ? "not-allowed" : "pointer",
-                color: "rgba(255,23,68,0.3)", fontSize: "0.8rem", padding: "0.25rem 0.375rem",
-                borderRadius: "2px", transition: "color 0.15s", lineHeight: 1,
+                color: "rgba(201,95,87,0.42)", fontSize: "0.8rem", padding: "0.25rem 0.375rem",
+                borderRadius: "10px", transition: "color 0.15s", lineHeight: 1,
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,23,68,0.8)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,23,68,0.3)")}
+              onMouseEnter={e => (e.currentTarget.style.color = "#c95f57")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(201,95,87,0.42)")}
             >
               ✕
             </button>
@@ -285,16 +282,16 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
       })}
 
       {deleteError && (
-        <p style={{ fontSize: "0.75rem", color: "#ff1744", textAlign: "center" }}>{deleteError}</p>
+        <p style={{ fontSize: "0.75rem", color: "#c95f57", textAlign: "center" }}>{deleteError}</p>
       )}
       {isRefreshing && (
-        <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", textAlign: "center" }}>
+        <p style={{ fontSize: "0.7rem", color: "#8f806f", textAlign: "center" }}>
           正在同步...
         </p>
       )}
 
       {displayed.length === 0 && !showForm && (
-        <p style={{ textAlign: "center", fontSize: "0.875rem", color: "rgba(74,85,128,0.5)", padding: "3rem 0", letterSpacing: "0.05em" }}>
+        <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#8f806f", padding: "3rem 0", letterSpacing: 0 }}>
           还没有领域，点击上方按钮创建一个吧
         </p>
       )}

@@ -58,7 +58,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
           borderRadius: "2px",
           color: open ? "#e040fb" : "rgba(74,85,128,0.7)",
           fontSize: "0.8rem",
-          letterSpacing: "0.08em",
+          letterSpacing: 0,
           cursor: "pointer",
           transition: "all 0.2s",
         }}
@@ -85,7 +85,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
           <span style={{ position:"absolute",bottom:-1,right:-1,width:12,height:12,borderBottom:"2px solid #e040fb",borderRight:"2px solid #e040fb" }} />
 
           <div>
-            <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"0.375rem" }}>
+            <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing: 0,textTransform:"uppercase",marginBottom:"0.375rem" }}>
               小时数
             </p>
             <input
@@ -103,7 +103,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
           </div>
 
           <div>
-            <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"0.375rem" }}>
+            <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing: 0,textTransform:"uppercase",marginBottom:"0.375rem" }}>
               日期
             </p>
             <input
@@ -117,7 +117,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
           </div>
 
           <div>
-            <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:"0.375rem" }}>
+            <p style={{ fontSize:"0.65rem",color:"rgba(74,85,128,0.7)",letterSpacing: 0,textTransform:"uppercase",marginBottom:"0.375rem" }}>
               备注（可选）
             </p>
             <input
@@ -157,7 +157,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
                 color:"#e040fb",
                 fontSize:"0.875rem",
                 fontWeight:600,
-                letterSpacing:"0.08em",
+                letterSpacing: 0,
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.5 : 1,
                 textShadow:"0 0 8px rgba(224,64,251,0.4)",

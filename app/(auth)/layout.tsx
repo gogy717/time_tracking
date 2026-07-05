@@ -6,10 +6,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#07070e",
+        background: "linear-gradient(135deg,#fbf6ec 0%,#fffaf1 52%,#e6f1ea 100%)",
         backgroundImage: `
-          linear-gradient(rgba(0,229,255,0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,229,255,0.035) 1px, transparent 1px)
+          linear-gradient(rgba(110,92,70,0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(110,92,70,0.05) 1px, transparent 1px)
         `,
         backgroundSize: "60px 60px",
         position: "relative",
@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at 50% 110%, rgba(0,80,200,0.18) 0%, rgba(120,0,200,0.06) 40%, transparent 65%)",
+            "radial-gradient(ellipse at 50% 110%, rgba(84,131,115,0.18) 0%, rgba(233,169,79,0.08) 40%, transparent 65%)",
           pointerEvents: "none",
         }}
       />
@@ -32,7 +32,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           position: "absolute",
           top: 0, left: 0, right: 0,
           height: "200px",
-          background: "linear-gradient(to bottom, rgba(7,7,14,0.8), transparent)",
+          background: "linear-gradient(to bottom, rgba(255,250,241,0.75), transparent)",
           pointerEvents: "none",
         }}
       />

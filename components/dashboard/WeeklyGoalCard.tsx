@@ -20,7 +20,7 @@ export default function WeeklyGoalCard({
   predicted10000?: Date | null;
   weeklyAvgMinutes?: number;
 }) {
-  const data = [{ value: Math.min(progress, 100), fill: "#00e5ff" }];
+  const data = [{ value: Math.min(progress, 100), fill: "#548373" }];
   const remainingHours = Math.max(0, 10000 - (totalMinutes ?? 0) / 60);
   const remainingWeeks = targetDate
     ? Math.max(0, (new Date(targetDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000))
@@ -29,62 +29,58 @@ export default function WeeklyGoalCard({
   return (
     <div
       style={{
-        background: "#0c0c1e",
-        border: "1px solid rgba(0,229,255,0.15)",
-        borderRadius: "2px",
+        background: "#fffdf8",
+        border: "1px solid rgba(110,92,70,0.12)",
+        borderRadius: "22px",
         padding: "1.5rem",
         display: "flex",
         alignItems: "center",
         gap: "2rem",
-        boxShadow: "0 0 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,229,255,0.04)",
+        boxShadow: "0 18px 45px rgba(115,94,64,0.09)",
         position: "relative",
       }}
     >
-      <span style={{ position: "absolute", top: -1, left: -1, width: 14, height: 14, borderTop: "2px solid #00e5ff", borderLeft: "2px solid #00e5ff" }} />
-      <span style={{ position: "absolute", bottom: -1, right: -1, width: 14, height: 14, borderBottom: "2px solid #00e5ff", borderRight: "2px solid #00e5ff" }} />
-
       <div style={{ width: 120, height: 120, flexShrink: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <RadialBarChart innerRadius="60%" outerRadius="90%" data={data} startAngle={90} endAngle={-270}>
-            <RadialBar dataKey="value" background={{ fill: "rgba(255,255,255,0.04)" }} cornerRadius={4} />
+            <RadialBar dataKey="value" background={{ fill: "rgba(110,92,70,0.10)" }} cornerRadius={8} />
           </RadialBarChart>
         </ResponsiveContainer>
       </div>
 
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: "0.65rem", letterSpacing: "0.25em", color: "rgba(74,85,128,0.7)", textTransform: "uppercase", marginBottom: "0.5rem" }}>
+        <div style={{ fontSize: "0.72rem", letterSpacing: 0, color: "#8f806f", marginBottom: "0.5rem" }}>
           本周目标
         </div>
         <p style={{
           fontSize: "3rem", fontWeight: 800,
           fontFamily: "var(--font-geist-mono, monospace)",
-          color: "#00e5ff",
-          textShadow: "0 0 15px rgba(0,229,255,0.6), 0 0 30px rgba(0,229,255,0.3)",
+          color: "#2f6f61",
           lineHeight: 1, marginBottom: "0.375rem",
         }}>
           {progress.toFixed(0)}%
         </p>
-        <p style={{ fontSize: "0.875rem", color: "rgba(74,85,128,0.9)", marginBottom: "0.625rem" }}>
+        <p style={{ fontSize: "0.875rem", color: "#7a6c5d", marginBottom: "0.625rem" }}>
           {formatDuration(thisWeekMinutes)}{" "}
-          <span style={{ color: "rgba(74,85,128,0.5)" }}>/ {goalHours}h</span>
+          <span style={{ color: "#a29382" }}>/ {goalHours}h</span>
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
           {targetDate && remainingWeeks !== null && (
-            <div style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.55)", letterSpacing: "0.03em" }}>
-              <span style={{ color: "rgba(0,229,255,0.4)" }}>◉ </span>
+            <div style={{ fontSize: "0.72rem", color: "#8f806f", letterSpacing: 0 }}>
+              <span style={{ color: "#548373" }}>● </span>
               目标 {new Date(targetDate).toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" })}
               {"  ·  "}剩余 {remainingHours.toFixed(0)}h{"  ·  "}{remainingWeeks.toFixed(0)} 周
             </div>
           )}
           {weeklyAvgMinutes !== undefined && weeklyAvgMinutes > 0 && (
-            <div style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.55)", letterSpacing: "0.03em" }}>
-              <span style={{ color: "rgba(0,229,255,0.3)" }}>◈ </span>
+            <div style={{ fontSize: "0.72rem", color: "#8f806f", letterSpacing: 0 }}>
+              <span style={{ color: "#548373" }}>◈ </span>
               近4周均速 {(weeklyAvgMinutes / 60).toFixed(1)}h/周
               {predicted10000 && (
                 <>
                   {"  ·  "}预计 10000h：
-                  <span style={{ color: "#00e5ff" }}>
+                  <span style={{ color: "#2f6f61" }}>
                     {new Date(predicted10000).toLocaleDateString("zh-CN", { year: "numeric", month: "long" })}
                   </span>
                 </>

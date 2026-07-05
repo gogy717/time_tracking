@@ -39,34 +39,34 @@ export default function ProgressCard({ domain }: { domain: Domain }) {
     <Link href={`/domains/${domain.id}`} style={{ textDecoration: "none" }}>
       <div
         style={{
-          background: "#0c0c1e",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderTop: `2px solid ${domain.color}`,
-          borderRadius: "2px",
+          background: "#fffdf8",
+          border: "1px solid rgba(110,92,70,0.12)",
+          borderTop: `4px solid ${domain.color}`,
+          borderRadius: "18px",
           padding: "1.25rem",
-          boxShadow: `0 0 30px rgba(0,0,0,0.6), 0 -2px 15px ${domain.color}20`,
+          boxShadow: `0 14px 35px rgba(115,94,64,0.08), 0 -2px 12px ${domain.color}14`,
           cursor: "pointer",
           transition: "transform 0.2s, box-shadow 0.2s",
           position: "relative",
         }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 30px rgba(0,0,0,0.7), 0 -2px 20px ${domain.color}30`;
+          (e.currentTarget as HTMLDivElement).style.boxShadow = `0 18px 42px rgba(115,94,64,0.13), 0 -2px 18px ${domain.color}24`;
         }}
         onMouseLeave={e => {
           (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 30px rgba(0,0,0,0.6), 0 -2px 15px ${domain.color}20`;
+          (e.currentTarget as HTMLDivElement).style.boxShadow = `0 14px 35px rgba(115,94,64,0.08), 0 -2px 12px ${domain.color}14`;
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: domain.color, boxShadow: `0 0 8px ${domain.color}`, flexShrink: 0 }} />
-          <h3 style={{ fontWeight: 600, color: "#dde4ff", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.95rem" }}>
+          <h3 style={{ fontWeight: 700, color: "#2f2a24", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.95rem" }}>
             {domain.name}
           </h3>
           {domain.icon && <span style={{ fontSize: "1rem" }}>{domain.icon}</span>}
         </div>
 
-        <p style={{ fontSize: "1.75rem", fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", letterSpacing: "0.05em", color: "#dde4ff", marginBottom: "1.25rem" }}>
+        <p style={{ fontSize: "1.75rem", fontWeight: 800, fontFamily: "var(--font-geist-mono, monospace)", letterSpacing: 0, color: "#2f2a24", marginBottom: "1.25rem" }}>
           {formatDuration(domain.totalMinutes)}
         </p>
 
@@ -88,7 +88,7 @@ export default function ProgressCard({ domain }: { domain: Domain }) {
         </div>
 
         {domain.thisWeekMinutes > 0 && (
-          <p style={{ marginTop: "0.875rem", fontSize: "0.65rem", color: "rgba(74,85,128,0.7)", letterSpacing: "0.08em" }}>
+          <p style={{ marginTop: "0.875rem", fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0 }}>
             本周 +{formatDuration(domain.thisWeekMinutes)}
           </p>
         )}

@@ -65,27 +65,28 @@ export default function DomainTargetForm({
 
   return (
     <div style={{
-      background: "#0c0c1e",
-      border: "1px solid rgba(255,255,255,0.05)",
-      borderRadius: "2px",
+      background: "#fffdf8",
+      border: "1px solid rgba(110,92,70,0.12)",
+      borderRadius: "18px",
       padding: "1.25rem",
       marginBottom: "1rem",
+      boxShadow: "0 14px 35px rgba(115,94,64,0.08)",
     }}>
-      <p style={{ fontSize: "0.6rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem" }}>
+      <p style={{ fontSize: "0.72rem", color: "#8f806f", letterSpacing: 0, marginBottom: "1rem" }}>
         目标设置
       </p>
 
       {/* Target hours + weekly goal */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "1rem" }}>
         <div>
-          <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.375rem" }}>目标小时</p>
-          <p style={{ fontSize: "1.1rem", fontWeight: 700, fontFamily: "monospace", color: "#dde4ff" }}>
+          <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>目标小时</p>
+          <p style={{ fontSize: "1.1rem", fontWeight: 800, fontFamily: "monospace", color: "#2f2a24" }}>
             {tLabel}h
           </p>
         </div>
         <div>
-          <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.375rem" }}>每周需要</p>
-          <p style={{ fontSize: "1.1rem", fontWeight: 700, fontFamily: "monospace", color: "#00e5ff", textShadow: "0 0 8px rgba(0,229,255,0.4)" }}>
+          <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.375rem" }}>每周需要</p>
+          <p style={{ fontSize: "1.1rem", fontWeight: 800, fontFamily: "monospace", color: "#2f6f61" }}>
             {displayWeekly}h
           </p>
         </div>
@@ -93,19 +94,19 @@ export default function DomainTargetForm({
 
       {/* Deadline section */}
       <div>
-        <p style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.6)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.5rem" }}>
+        <p style={{ fontSize: "0.68rem", color: "#8f806f", letterSpacing: 0, marginBottom: "0.5rem" }}>
           截止日期
         </p>
 
         {/* Show current date + change button when not editing */}
         {!editing && currentDateDisplay && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "2px" }}>
-            <span style={{ fontSize: "0.875rem", color: saved ? "#69ff47" : "#dde4ff" }}>
-              {saved ? "◉ 已保存  " : ""}{currentDateDisplay}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0.75rem", background: "#fffaf1", border: "1px solid rgba(110,92,70,0.12)", borderRadius: "14px" }}>
+            <span style={{ fontSize: "0.875rem", color: saved ? "#4f8f65" : "#2f2a24" }}>
+              {saved ? "● 已保存  " : ""}{currentDateDisplay}
             </span>
             <button
               onClick={() => { setEditing(true); setSaved(false); }}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", color: "rgba(0,229,255,0.6)", letterSpacing: "0.06em", padding: "0 0.25rem" }}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", color: "#2f6f61", letterSpacing: 0, padding: "0 0.25rem" }}
             >
               修改
             </button>
@@ -122,21 +123,21 @@ export default function DomainTargetForm({
               style={{
                 flex: 1,
                 padding: "0.6rem 0.75rem",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: "2px",
-                color: "#dde4ff",
+                background: "#fffaf1",
+                border: "1px solid rgba(110,92,70,0.18)",
+                borderRadius: "12px",
+                color: "#2f2a24",
                 fontSize: "0.875rem",
-                colorScheme: "dark",
+                colorScheme: "light",
                 transition: "border-color 0.2s",
               }}
-              onFocus={e => (e.target.style.borderColor = "rgba(0,229,255,0.4)")}
-              onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+              onFocus={e => (e.target.style.borderColor = "rgba(84,131,115,0.5)")}
+              onBlur={e => (e.target.style.borderColor = "rgba(110,92,70,0.18)")}
             />
             {currentDateDisplay && (
               <button
                 onClick={() => { setEditing(false); setDate(targetDate ? new Date(targetDate).toISOString().split("T")[0] : ""); }}
-                style={{ padding: "0.6rem 0.75rem", background: "transparent", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "2px", color: "rgba(74,85,128,0.7)", fontSize: "0.8rem", cursor: "pointer", whiteSpace: "nowrap" }}
+                style={{ padding: "0.6rem 0.75rem", background: "#fffaf1", border: "1px solid rgba(110,92,70,0.16)", borderRadius: "999px", color: "#7a6c5d", fontSize: "0.8rem", cursor: "pointer", whiteSpace: "nowrap" }}
               >
                 取消
               </button>
@@ -146,13 +147,13 @@ export default function DomainTargetForm({
               disabled={saving || !date}
               style={{
                 padding: "0.6rem 1rem",
-                background: "rgba(0,229,255,0.1)",
-                border: "1px solid rgba(0,229,255,0.35)",
-                borderRadius: "2px",
-                color: "#00e5ff",
+                background: "#548373",
+                border: "1px solid #548373",
+                borderRadius: "999px",
+                color: "#fffdf8",
                 fontSize: "0.8rem",
                 fontWeight: 600,
-                letterSpacing: "0.08em",
+                letterSpacing: 0,
                 cursor: (saving || !date) ? "not-allowed" : "pointer",
                 opacity: (saving || !date) ? 0.5 : 1,
                 whiteSpace: "nowrap",
@@ -162,8 +163,8 @@ export default function DomainTargetForm({
             </button>
           </div>
         )}
-        {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.5rem" }}>{error}</p>}
-        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
+        {error && <p style={{ fontSize: "0.75rem", color: "#c95f57", marginTop: "0.5rem" }}>{error}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "#8f806f", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
     </div>
   );
