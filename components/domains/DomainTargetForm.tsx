@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { calcWeeklyGoal } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ export default function DomainTargetForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
 
   const calculated = date ? calcWeeklyGoal(totalMinutes, new Date(date), 10, safeTargetHours) : null;
   const displayWeekly = calculated ?? weeklyGoal;
@@ -46,7 +47,7 @@ export default function DomainTargetForm({
       setSaved(true);
       setEditing(false);
       setTimeout(() => setSaved(false), 2000);
-      router.refresh();
+      startRefresh(() => router.refresh());
     } catch {
       setError("网络错误，请重试");
     } finally {
@@ -160,6 +161,7 @@ export default function DomainTargetForm({
           </div>
         )}
         {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.5rem" }}>{error}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
     </div>
   );

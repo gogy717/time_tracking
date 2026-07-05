@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatTimer } from "@/lib/utils";
 
@@ -25,6 +25,7 @@ export default function TimerClient({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   // Tracks the confirmed server session ID for sendBeacon (separate from optimistic state)
   const confirmedIdRef = useRef<string | null>(activeSession?.id ?? null);
@@ -64,6 +65,7 @@ export default function TimerClient({
         confirmedIdRef.current = data.sessionId;
         setSessionId(data.sessionId);
         setStartTime(new Date(data.startTime));
+        startRefresh(() => router.refresh());
       } else {
         confirmedIdRef.current = null;
         setSessionId(null);
@@ -101,7 +103,7 @@ export default function TimerClient({
         body: JSON.stringify({ sessionId: id }),
       });
       if (!res.ok) throw new Error("stop failed");
-      router.refresh();
+      startRefresh(() => router.refresh());
     } catch {
       confirmedIdRef.current = id;
       setSessionId(previousSessionId);
@@ -181,7 +183,7 @@ export default function TimerClient({
               transition:"all 0.2s",
             }}
           >
-            停止
+            {loading ? "停止中..." : "停止"}
           </button>
         </div>
       ) : (
@@ -230,9 +232,14 @@ export default function TimerClient({
               transition:"all 0.2s",
             }}
           >
-            开始
+            {loading ? "启动中..." : "开始"}
           </button>
         </div>
+      )}
+      {isRefreshing && (
+        <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.7)", marginTop: "0.75rem" }}>
+          正在同步统计...
+        </p>
       )}
       {error && (
         <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "1rem" }}>{error}</p>

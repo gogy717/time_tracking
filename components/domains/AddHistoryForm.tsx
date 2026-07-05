@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AddHistoryForm({ domainId }: { domainId: string }) {
@@ -11,6 +11,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +28,7 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
       setOpen(false);
       setHours("");
       setNote("");
-      router.refresh();
+      startRefresh(() => router.refresh());
     } else {
       const data = await res.json();
       setError(data.error ?? "提交失败");
@@ -132,6 +133,9 @@ export default function AddHistoryForm({ domainId }: { domainId: string }) {
 
           {error && (
             <p style={{ fontSize:"0.75rem",color:"#ff1744" }}>{error}</p>
+          )}
+          {isRefreshing && (
+            <p style={{ fontSize:"0.7rem",color:"rgba(74,85,128,0.65)" }}>正在同步...</p>
           )}
 
           <div style={{ display:"flex",gap:"0.5rem" }}>

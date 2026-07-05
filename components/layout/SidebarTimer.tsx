@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatTimer } from "@/lib/utils";
 
@@ -13,6 +13,8 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
   const [elapsed, setElapsed] = useState(0);
   const [selectedId, setSelectedId] = useState(domains[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
+  const [syncingActive, setSyncingActive] = useState(true);
+  const [isRefreshing, startRefresh] = useTransition();
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -30,7 +32,8 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
           setExpanded(true);
         }
       })
-      .catch(() => setError("计时状态同步失败"));
+      .catch(() => setError("计时状态同步失败"))
+      .finally(() => setSyncingActive(false));
   }, []);
 
   // Interval
@@ -70,6 +73,7 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
       if (res.ok) {
         confirmedIdRef.current = data.sessionId;
         setActive({ id: data.sessionId, startTime: data.startTime, domain });
+        startRefresh(() => router.refresh());
       } else {
         confirmedIdRef.current = null;
         setActive(null);
@@ -105,7 +109,7 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
         body: JSON.stringify({ sessionId: id }),
       });
       if (!res.ok) throw new Error("stop failed");
-      router.refresh();
+      startRefresh(() => router.refresh());
     } catch {
       confirmedIdRef.current = id;
       setActive(previousActive);
@@ -145,7 +149,7 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
           </select>
           <button
             onClick={handleStart}
-            disabled={loading || !selectedId || domains.length === 0}
+            disabled={loading || syncingActive || !selectedId || domains.length === 0}
             style={{
               width: "100%",
               padding: "0.45rem",
@@ -156,12 +160,12 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
               fontSize: "0.75rem",
               fontWeight: 600,
               letterSpacing: "0.1em",
-              cursor: (loading || !selectedId) ? "not-allowed" : "pointer",
-              opacity: (loading || !selectedId) ? 0.4 : 1,
+              cursor: (loading || syncingActive || !selectedId) ? "not-allowed" : "pointer",
+              opacity: (loading || syncingActive || !selectedId) ? 0.4 : 1,
               textShadow: "0 0 6px rgba(0,229,255,0.4)",
             }}
           >
-            ▶ 开始计时
+            {loading ? "启动中..." : syncingActive ? "同步中..." : "▶ 开始计时"}
           </button>
         </div>
       )}
@@ -203,9 +207,14 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
               opacity: loading ? 0.5 : 1,
             }}
           >
-            ■ 停止
+            {loading ? "停止中..." : "■ 停止"}
           </button>
         </div>
+      )}
+      {isRefreshing && (
+        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "rgba(74,85,128,0.65)", lineHeight: 1.4 }}>
+          正在同步...
+        </p>
       )}
       {error && (
         <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "#ff1744", lineHeight: 1.4 }}>

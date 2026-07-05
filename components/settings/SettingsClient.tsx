@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { calcWeeklyGoal } from "@/lib/utils";
@@ -18,8 +18,10 @@ export default function SettingsClient({ user }: { user: User }) {
     user.goalTargetDate ? new Date(user.goalTargetDate).toISOString().split("T")[0] : ""
   );
   const [saving, setSaving] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
 
   const calculatedGoal = targetDate
     ? calcWeeklyGoal(0, new Date(targetDate), user.weeklyGoalHours)
@@ -41,7 +43,7 @@ export default function SettingsClient({ user }: { user: User }) {
       }
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-      router.refresh();
+      startRefresh(() => router.refresh());
     } catch {
       setError("网络错误，请重试");
     } finally {
@@ -150,6 +152,7 @@ export default function SettingsClient({ user }: { user: User }) {
           {saved ? "◉ 已保存" : saving ? "保存中..." : "保存"}
         </button>
         {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.75rem" }}>{error}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
 
       {/* Sign out */}
@@ -158,7 +161,11 @@ export default function SettingsClient({ user }: { user: User }) {
           账号操作
         </h2>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {
+            setSigningOut(true);
+            signOut({ callbackUrl: "/login" }).catch(() => setSigningOut(false));
+          }}
+          disabled={signingOut}
           style={{
             padding: "0.6rem 1.5rem",
             background: "rgba(255,23,68,0.05)",
@@ -169,7 +176,8 @@ export default function SettingsClient({ user }: { user: User }) {
             fontWeight: 600,
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            cursor: "pointer",
+            cursor: signingOut ? "wait" : "pointer",
+            opacity: signingOut ? 0.55 : 1,
             transition: "all 0.2s",
           }}
           onMouseEnter={e => {
@@ -181,7 +189,7 @@ export default function SettingsClient({ user }: { user: User }) {
             (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,23,68,0.25)";
           }}
         >
-          退出登录
+          {signingOut ? "退出中..." : "退出登录"}
         </button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDuration, predictMilestone, calcWeeklyGoal } from "@/lib/utils";
 import { pick3Milestones } from "@/lib/milestones";
@@ -42,6 +42,7 @@ export default function DomainDetailInteractive({
   const router = useRouter();
   const [totalMinutes, setTotalMinutes] = useState(initialTotalMinutes);
   const [sessions, setSessions] = useState<Session[]>(initialSessions);
+  const [isRefreshing, startRefresh] = useTransition();
 
   // Derived state — recomputed instantly on every change
   const totalHours = totalMinutes / 60;
@@ -100,7 +101,7 @@ export default function DomainDetailInteractive({
         // Replace fake session with real one from server
         const real = await res.json();
         setSessions(prev => prev.map(s => s.id === fakeId ? real : s));
-        router.refresh();
+        startRefresh(() => router.refresh());
       }
     } catch {
       setTotalMinutes(prev => Math.max(0, prev - minutes));
@@ -141,7 +142,7 @@ export default function DomainDetailInteractive({
         const data = await res.json().catch(() => ({}));
         setDeleteError(data.error ?? "删除失败，请重试");
       } else {
-        router.refresh();
+        startRefresh(() => router.refresh());
       }
     } catch {
       setTotalMinutes(prev => prev + minutes);
@@ -319,6 +320,7 @@ export default function DomainDetailInteractive({
           </div>
         )}
         {deleteError && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.5rem" }}>{deleteError}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
     </>
   );

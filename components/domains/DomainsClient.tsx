@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LADDER } from "@/lib/milestones";
@@ -31,6 +31,7 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [optimisticDomains, setOptimisticDomains] = useState<Domain[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  const [isRefreshing, startRefresh] = useTransition();
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -54,8 +55,9 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
         body: JSON.stringify({ name: saved.name, color: saved.color, icon: saved.icon || undefined, targetHours: saved.targetHours }),
       });
       if (res.ok) {
-        setOptimisticDomains(prev => prev.filter(d => d.id !== tempId));
-        router.refresh();
+        const created = await res.json();
+        setOptimisticDomains(prev => prev.map(d => d.id === tempId ? { ...created, _count: { timeSessions: 0 } } : d));
+        startRefresh(() => router.refresh());
       } else {
         setOptimisticDomains(prev => prev.filter(d => d.id !== tempId));
         setShowForm(true);
@@ -82,8 +84,7 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
     try {
       const res = await fetch(`/api/domains/${id}`, { method: "DELETE" });
       if (res.ok) {
-        setDeletedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
-        router.refresh();
+        startRefresh(() => router.refresh());
       } else {
         setDeletedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
         const data = await res.json().catch(() => ({}));
@@ -99,7 +100,7 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
 
   const displayed = [
     ...domains.filter(d => !d.isArchived && !deletedIds.has(d.id)),
-    ...optimisticDomains,
+    ...optimisticDomains.filter(d => !deletedIds.has(d.id) && !domains.some(existing => existing.id === d.id)),
   ];
 
   const inputStyle = {
@@ -258,6 +259,11 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
 
       {deleteError && (
         <p style={{ fontSize: "0.75rem", color: "#ff1744", textAlign: "center" }}>{deleteError}</p>
+      )}
+      {isRefreshing && (
+        <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", textAlign: "center" }}>
+          正在同步...
+        </p>
       )}
 
       {displayed.length === 0 && !showForm && (
