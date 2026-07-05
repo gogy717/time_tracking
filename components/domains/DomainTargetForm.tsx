@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { calcWeeklyGoal } from "@/lib/utils";
+import { invalidateDomainDetail } from "./domain-detail-cache";
 
 export default function DomainTargetForm({
   domainId,
@@ -44,6 +45,7 @@ export default function DomainTargetForm({
         setError(data.error ?? "保存失败，请重试");
         return;
       }
+      invalidateDomainDetail(domainId);
       setSaved(true);
       setEditing(false);
       setTimeout(() => setSaved(false), 2000);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatDuration, predictMilestone, calcWeeklyGoal } from "@/lib/utils";
 import { pick3Milestones } from "@/lib/milestones";
 import DomainTargetForm from "./DomainTargetForm";
+import { invalidateDomainDetail } from "./domain-detail-cache";
 
 type Session = {
   id: string;
@@ -101,6 +102,7 @@ export default function DomainDetailInteractive({
         // Replace fake session with real one from server
         const real = await res.json();
         setSessions(prev => prev.map(s => s.id === fakeId ? real : s));
+        invalidateDomainDetail(domainId);
         startRefresh(() => router.refresh());
       }
     } catch {
@@ -142,6 +144,7 @@ export default function DomainDetailInteractive({
         const data = await res.json().catch(() => ({}));
         setDeleteError(data.error ?? "删除失败，请重试");
       } else {
+        invalidateDomainDetail(domainId);
         startRefresh(() => router.refresh());
       }
     } catch {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LADDER } from "@/lib/milestones";
+import { prefetchDomainDetail } from "./domain-detail-cache";
 
 type Domain = {
   id: string;
@@ -98,10 +99,27 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
     }
   }
 
-  const displayed = [
+  const displayed = useMemo(() => [
     ...domains.filter(d => !d.isArchived && !deletedIds.has(d.id)),
     ...optimisticDomains.filter(d => !deletedIds.has(d.id) && !domains.some(existing => existing.id === d.id)),
-  ];
+  ], [deletedIds, domains, optimisticDomains]);
+  const preloadIds = displayed.filter(d => !d.id.startsWith("opt-")).map(d => d.id).join("|");
+
+  function warmDomain(id: string) {
+    if (id.startsWith("opt-")) return;
+    router.prefetch(`/domains/${id}`);
+    void prefetchDomainDetail(id).catch(() => {});
+  }
+
+  useEffect(() => {
+    const ids = preloadIds ? preloadIds.split("|") : [];
+    if (ids.length === 0) return;
+
+    for (const id of ids) {
+      router.prefetch(`/domains/${id}`);
+      void prefetchDomainDetail(id).catch(() => {});
+    }
+  }, [preloadIds, router]);
 
   const inputStyle = {
     width: "100%",
@@ -212,7 +230,16 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
           <div key={domain.id} style={{ position: "relative" }}>
             <Link
               href={`/domains/${domain.id}`}
-              onClick={e => { if (isPending) e.preventDefault(); }}
+              onMouseEnter={() => warmDomain(domain.id)}
+              onFocus={() => warmDomain(domain.id)}
+              onTouchStart={() => warmDomain(domain.id)}
+              onClick={e => {
+                if (isPending) {
+                  e.preventDefault();
+                  return;
+                }
+                warmDomain(domain.id);
+              }}
               style={{ textDecoration: "none", display: "block" }}
             >
               <div
