@@ -27,29 +27,46 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
   const [targetHours, setTargetHours] = useState(10000);
   const [loading, setLoading] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [optimisticDomains, setOptimisticDomains] = useState<Domain[]>([]);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setCreateError("请输入领域名称");
+      return;
+    }
     setLoading(true);
     setCreateError("");
+    setDeleteError("");
+    const tempId = `opt-${Date.now()}`;
+    const saved = { name: trimmedName, color, icon, targetHours };
+    setOptimisticDomains(prev => [...prev, { id: tempId, name: saved.name, color, icon: icon || null, isArchived: false, targetHours, _count: { timeSessions: 0 } }]);
+    setShowForm(false);
+    setName(""); setIcon(""); setTargetHours(10000);
     try {
       const res = await fetch("/api/domains", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, color, icon: icon || undefined, targetHours }),
+        body: JSON.stringify({ name: saved.name, color: saved.color, icon: saved.icon || undefined, targetHours: saved.targetHours }),
       });
       if (res.ok) {
-        setShowForm(false);
-        setName("");
-        setIcon("");
-        setTargetHours(10000);
+        setOptimisticDomains(prev => prev.filter(d => d.id !== tempId));
         router.refresh();
       } else {
+        setOptimisticDomains(prev => prev.filter(d => d.id !== tempId));
+        setShowForm(true);
+        setName(saved.name); setColor(saved.color); setIcon(saved.icon); setTargetHours(saved.targetHours);
         const data = await res.json().catch(() => ({ error: "请求失败" }));
         setCreateError(data.error ?? "创建失败");
       }
     } catch {
+      setOptimisticDomains(prev => prev.filter(d => d.id !== tempId));
+      setShowForm(true);
+      setName(saved.name); setColor(saved.color); setIcon(saved.icon); setTargetHours(saved.targetHours);
       setCreateError("网络错误，请重试");
     } finally {
       setLoading(false);
@@ -57,16 +74,33 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
   }
 
   async function handleDelete(id: string, domainName: string) {
+    if (id.startsWith("opt-")) return;
     if (!confirm(`确定删除「${domainName}」吗？此操作不可撤销，所有记录将一并删除。`)) return;
     setDeleting(id);
-    const res = await fetch(`/api/domains/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      router.refresh();
+    setDeleteError("");
+    setDeletedIds(prev => new Set([...prev, id]));
+    try {
+      const res = await fetch(`/api/domains/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setDeletedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+        router.refresh();
+      } else {
+        setDeletedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error ?? "删除失败，请重试");
+      }
+    } catch {
+      setDeletedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+      setDeleteError("网络错误，请重试");
+    } finally {
+      setDeleting(null);
     }
-    setDeleting(null);
   }
 
-  const active = domains.filter(d => !d.isArchived);
+  const displayed = [
+    ...domains.filter(d => !d.isArchived && !deletedIds.has(d.id)),
+    ...optimisticDomains,
+  ];
 
   const inputStyle = {
     width: "100%",
@@ -158,10 +192,10 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
               style={{ flex: 1, padding: "0.6rem", background: "transparent", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "2px", color: "rgba(74,85,128,0.8)", fontSize: "0.875rem", cursor: "pointer" }}>
               取消
             </button>
-            <button type="submit" disabled={loading} style={{
+            <button type="submit" disabled={loading || !name.trim()} style={{
               flex: 1, padding: "0.6rem", background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.35)",
               borderRadius: "2px", color: "#00e5ff", fontSize: "0.875rem", fontWeight: 600, letterSpacing: "0.08em",
-              cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.5 : 1, textShadow: "0 0 6px rgba(0,229,255,0.4)",
+              cursor: (loading || !name.trim()) ? "not-allowed" : "pointer", opacity: (loading || !name.trim()) ? 0.5 : 1, textShadow: "0 0 6px rgba(0,229,255,0.4)",
             }}>
               {loading ? "创建中..." : "创建"}
             </button>
@@ -169,21 +203,26 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
         </form>
       )}
 
-      {active.map(domain => {
+      {displayed.map(domain => {
         const t = domain.targetHours;
         const tLabel = t >= 1000 ? `${t / 1000}k` : t;
+        const isPending = domain.id.startsWith("opt-");
         return (
           <div key={domain.id} style={{ position: "relative" }}>
-            <Link href={`/domains/${domain.id}`} style={{ textDecoration: "none", display: "block" }}>
+            <Link
+              href={`/domains/${domain.id}`}
+              onClick={e => { if (isPending) e.preventDefault(); }}
+              style={{ textDecoration: "none", display: "block" }}
+            >
               <div
                 style={{
                   display: "flex", alignItems: "center", gap: "0.75rem",
                   background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)",
                   borderLeft: `3px solid ${domain.color}`, borderRadius: "2px",
                   padding: "1rem 3rem 1rem 1.25rem",
-                  cursor: "pointer", transition: "all 0.2s",
+                  cursor: isPending ? "progress" : "pointer", transition: "all 0.2s",
                   boxShadow: `-2px 0 10px ${domain.color}15`,
-                  opacity: deleting === domain.id ? 0.4 : 1,
+                  opacity: deleting === domain.id || isPending ? 0.55 : 1,
                 }}
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "#10102a"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#0c0c1e"}
@@ -194,17 +233,17 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
                 <div style={{ textAlign: "right" }}>
                   <span style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.5)" }}>目标 {tLabel}h</span>
                   <br />
-                  <span style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.4)" }}>{domain._count.timeSessions} 次</span>
+                  <span style={{ fontSize: "0.65rem", color: "rgba(74,85,128,0.4)" }}>{isPending ? "同步中" : `${domain._count.timeSessions} 次`}</span>
                 </div>
               </div>
             </Link>
             <button
               onClick={() => handleDelete(domain.id, domain.name)}
-              disabled={deleting === domain.id}
+              disabled={deleting === domain.id || isPending}
               title="删除领域"
               style={{
                 position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
-                background: "none", border: "none", cursor: deleting === domain.id ? "not-allowed" : "pointer",
+                background: "none", border: "none", cursor: (deleting === domain.id || isPending) ? "not-allowed" : "pointer",
                 color: "rgba(255,23,68,0.3)", fontSize: "0.8rem", padding: "0.25rem 0.375rem",
                 borderRadius: "2px", transition: "color 0.15s", lineHeight: 1,
               }}
@@ -217,7 +256,11 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
         );
       })}
 
-      {active.length === 0 && !showForm && (
+      {deleteError && (
+        <p style={{ fontSize: "0.75rem", color: "#ff1744", textAlign: "center" }}>{deleteError}</p>
+      )}
+
+      {displayed.length === 0 && !showForm && (
         <p style={{ textAlign: "center", fontSize: "0.875rem", color: "rgba(74,85,128,0.5)", padding: "3rem 0", letterSpacing: "0.05em" }}>
           还没有领域，点击上方按钮创建一个吧
         </p>

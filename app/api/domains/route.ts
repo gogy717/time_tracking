@@ -1,5 +1,13 @@
 import { auth } from "@/lib/auth";
+import {
+  cleanHexColor,
+  cleanOptionalString,
+  cleanPositiveNumber,
+  cleanString,
+  readJsonBody,
+} from "@/lib/api-validation";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -19,19 +27,33 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, color, icon, description, targetHours } = await req.json();
-  if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+  const body = await readJsonBody(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
 
-  const domain = await db.domain.create({
-    data: {
-      userId: session.user.id,
-      name: name.trim(),
-      color: color ?? "#6366f1",
-      icon,
-      description,
-      targetHours: typeof targetHours === "number" && targetHours > 0 ? targetHours : 10000,
-    },
-  });
+  const name = cleanString(body.name, 80);
+  if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
-  return NextResponse.json(domain, { status: 201 });
+  const icon = cleanOptionalString(body.icon, 16);
+  const description = cleanOptionalString(body.description, 500);
+  const targetHours = cleanPositiveNumber(body.targetHours, { max: 100000 }) ?? 10000;
+
+  try {
+    const domain = await db.domain.create({
+      data: {
+        userId: session.user.id,
+        name,
+        color: cleanHexColor(body.color),
+        icon,
+        description,
+        targetHours,
+      },
+    });
+
+    return NextResponse.json(domain, { status: 201 });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Domain name already exists" }, { status: 409 });
+    }
+    throw error;
+  }
 }

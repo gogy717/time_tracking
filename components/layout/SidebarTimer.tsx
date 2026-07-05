@@ -14,7 +14,9 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
   const [selectedId, setSelectedId] = useState(domains[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [error, setError] = useState("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const confirmedIdRef = useRef<string | null>(null);
 
   // Fetch active session on mount
   useEffect(() => {
@@ -22,11 +24,13 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
       .then(r => r.json())
       .then(({ session }) => {
         if (session) {
+          confirmedIdRef.current = session.id;
           setActive(session);
           setElapsed(Math.floor((Date.now() - new Date(session.startTime).getTime()) / 1000));
           setExpanded(true);
         }
-      });
+      })
+      .catch(() => setError("计时状态同步失败"));
   }, []);
 
   // Interval
@@ -41,43 +45,75 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
   // sendBeacon on unload
   useEffect(() => {
     if (!active) return;
-    const handler = () => navigator.sendBeacon("/api/timer/stop", JSON.stringify({ sessionId: active.id }));
+    const handler = () => {
+      const id = confirmedIdRef.current;
+      if (id) navigator.sendBeacon("/api/timer/stop", JSON.stringify({ sessionId: id }));
+    };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [active]);
 
   async function handleStart() {
     if (!selectedId) return;
+    const domain = domains.find(d => d.id === selectedId)!;
     setLoading(true);
-    const res = await fetch("/api/timer/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domainId: selectedId }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      const domain = domains.find(d => d.id === selectedId)!;
-      setActive({ id: data.sessionId, startTime: data.startTime, domain });
-    } else {
-      alert(data.error);
+    setError("");
+    setActive({ id: "__opt__", startTime: new Date().toISOString(), domain });
+    setExpanded(true);
+    try {
+      const res = await fetch("/api/timer/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domainId: selectedId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        confirmedIdRef.current = data.sessionId;
+        setActive({ id: data.sessionId, startTime: data.startTime, domain });
+      } else {
+        confirmedIdRef.current = null;
+        setActive(null);
+        setExpanded(false);
+        setError(data.error ?? "启动失败");
+      }
+    } catch {
+      confirmedIdRef.current = null;
+      setActive(null);
+      setExpanded(false);
+      setError("网络错误，请重试");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function handleStop() {
     if (!active) return;
+    const id = confirmedIdRef.current ?? active.id;
+    if (!id || id === "__opt__") return;
+    const previousActive = active;
+    confirmedIdRef.current = null;
     setLoading(true);
-    await fetch("/api/timer/stop", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: active.id }),
-    });
+    setError("");
     if (intervalRef.current) clearInterval(intervalRef.current);
     setActive(null);
     setElapsed(0);
     setExpanded(false);
-    setLoading(false);
-    router.refresh();
+    try {
+      const res = await fetch("/api/timer/stop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: id }),
+      });
+      if (!res.ok) throw new Error("stop failed");
+      router.refresh();
+    } catch {
+      confirmedIdRef.current = id;
+      setActive(previousActive);
+      setExpanded(true);
+      setError("停止失败，计时仍在继续");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const glowColor = active ? active.domain.color : "#00e5ff";
@@ -103,7 +139,7 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
             }}
           >
             {domains.length === 0
-              ? <option disabled>先创建领域</option>
+              ? <option value="" disabled>先创建领域</option>
               : domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)
             }
           </select>
@@ -170,6 +206,11 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
             ■ 停止
           </button>
         </div>
+      )}
+      {error && (
+        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "#ff1744", lineHeight: 1.4 }}>
+          {error}
+        </p>
       )}
     </div>
   );

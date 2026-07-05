@@ -19,6 +19,7 @@ export default function SettingsClient({ user }: { user: User }) {
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   const calculatedGoal = targetDate
     ? calcWeeklyGoal(0, new Date(targetDate), user.weeklyGoalHours)
@@ -26,15 +27,26 @@ export default function SettingsClient({ user }: { user: User }) {
 
   async function handleSave() {
     setSaving(true);
-    await fetch("/api/user", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goalTargetDate: targetDate || null }),
-    });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goalTargetDate: targetDate || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "保存失败，请重试");
+        return;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      router.refresh();
+    } catch {
+      setError("网络错误，请重试");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const sectionStyle = {
@@ -89,7 +101,7 @@ export default function SettingsClient({ user }: { user: User }) {
           <input
             type="date"
             value={targetDate}
-            onChange={e => setTargetDate(e.target.value)}
+            onChange={e => { setTargetDate(e.target.value); setError(""); setSaved(false); }}
             style={{
               padding: "0.6rem 0.875rem",
               background: "rgba(255,255,255,0.03)",
@@ -137,6 +149,7 @@ export default function SettingsClient({ user }: { user: User }) {
         >
           {saved ? "◉ 已保存" : saving ? "保存中..." : "保存"}
         </button>
+        {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.75rem" }}>{error}</p>}
       </div>
 
       {/* Sign out */}

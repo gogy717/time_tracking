@@ -20,9 +20,14 @@ export default function TimerClient({
   const [startTime, setStartTime] = useState<Date | null>(
     activeSession ? new Date(activeSession.startTime) : null
   );
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsed, setElapsed] = useState(
+    activeSession ? Math.floor((Date.now() - new Date(activeSession.startTime).getTime()) / 1000) : 0
+  );
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Tracks the confirmed server session ID for sendBeacon (separate from optimistic state)
+  const confirmedIdRef = useRef<string | null>(activeSession?.id ?? null);
 
   useEffect(() => {
     if (startTime) {
@@ -35,41 +40,76 @@ export default function TimerClient({
 
   useEffect(() => {
     if (!sessionId) return;
-    const handler = () => navigator.sendBeacon("/api/timer/stop", JSON.stringify({ sessionId }));
+    const handler = () => {
+      const id = confirmedIdRef.current;
+      if (id) navigator.sendBeacon("/api/timer/stop", JSON.stringify({ sessionId: id }));
+    };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [sessionId]);
 
   async function handleStart() {
     setLoading(true);
-    const res = await fetch("/api/timer/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domainId: selectedId }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setSessionId(data.sessionId);
-      setStartTime(new Date(data.startTime));
-    } else {
-      alert(data.error);
+    setError("");
+    setSessionId("__opt__");
+    setStartTime(new Date());
+    try {
+      const res = await fetch("/api/timer/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domainId: selectedId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        confirmedIdRef.current = data.sessionId;
+        setSessionId(data.sessionId);
+        setStartTime(new Date(data.startTime));
+      } else {
+        confirmedIdRef.current = null;
+        setSessionId(null);
+        setStartTime(null);
+        setElapsed(0);
+        setError(data.error ?? "启动失败，请重试");
+      }
+    } catch {
+      confirmedIdRef.current = null;
+      setSessionId(null);
+      setStartTime(null);
+      setElapsed(0);
+      setError("网络错误，请重试");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function handleStop() {
+    const id = confirmedIdRef.current ?? sessionId;
+    if (!id || id === "__opt__") return;
+    const previousSessionId = sessionId;
+    const previousStartTime = startTime;
+    confirmedIdRef.current = null;
     setLoading(true);
-    await fetch("/api/timer/stop", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
+    setError("");
     setSessionId(null);
     setStartTime(null);
     setElapsed(0);
     if (intervalRef.current) clearInterval(intervalRef.current);
-    setLoading(false);
-    router.refresh();
+    try {
+      const res = await fetch("/api/timer/stop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: id }),
+      });
+      if (!res.ok) throw new Error("stop failed");
+      router.refresh();
+    } catch {
+      confirmedIdRef.current = id;
+      setSessionId(previousSessionId);
+      setStartTime(previousStartTime);
+      setError("停止失败，计时仍在继续");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const isRunning = !!sessionId;
@@ -165,7 +205,7 @@ export default function TimerClient({
             }}
           >
             {domains.length === 0 ? (
-              <option disabled>先创建一个领域</option>
+              <option value="" disabled>先创建一个领域</option>
             ) : (
               domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)
             )}
@@ -193,6 +233,9 @@ export default function TimerClient({
             开始
           </button>
         </div>
+      )}
+      {error && (
+        <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "1rem" }}>{error}</p>
       )}
     </div>
   );
