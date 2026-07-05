@@ -1,95 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { formatTimer } from "@/lib/utils";
+import { useTimer } from "@/components/timer/TimerProvider";
 
-type Domain = { id: string; name: string; color: string };
-type ActiveSession = { id: string; startTime: string; domain: Domain } | null;
+export default function SidebarTimer() {
+  const {
+    domains,
+    selectedId,
+    setSelectedId,
+    active,
+    elapsed,
+    status,
+    error,
+    startTimer,
+    stopTimer,
+  } = useTimer();
 
-export default function SidebarTimer({ domains }: { domains: Domain[] }) {
-  const router = useRouter();
-  const [active, setActive] = useState<ActiveSession>(null);
-  const [elapsed, setElapsed] = useState(0);
-  const [selectedId, setSelectedId] = useState(domains[0]?.id ?? "");
-  const [loading, setLoading] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Fetch active session on mount
-  useEffect(() => {
-    fetch("/api/timer/active")
-      .then(r => r.json())
-      .then(({ session }) => {
-        if (session) {
-          setActive(session);
-          setElapsed(Math.floor((Date.now() - new Date(session.startTime).getTime()) / 1000));
-          setExpanded(true);
-        }
-      });
-  }, []);
-
-  // Interval
-  useEffect(() => {
-    if (!active) { setElapsed(0); return; }
-    intervalRef.current = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - new Date(active.startTime).getTime()) / 1000));
-    }, 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [active]);
-
-  // sendBeacon on unload
-  useEffect(() => {
-    if (!active) return;
-    const handler = () => navigator.sendBeacon("/api/timer/stop", JSON.stringify({ sessionId: active.id }));
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [active]);
-
-  async function handleStart() {
-    if (!selectedId) return;
-    setLoading(true);
-    const res = await fetch("/api/timer/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domainId: selectedId }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      const domain = domains.find(d => d.id === selectedId)!;
-      setActive({ id: data.sessionId, startTime: data.startTime, domain });
-    } else {
-      alert(data.error);
-    }
-    setLoading(false);
-  }
-
-  async function handleStop() {
-    if (!active) return;
-    setLoading(true);
-    await fetch("/api/timer/stop", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: active.id }),
-    });
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setActive(null);
-    setElapsed(0);
-    setExpanded(false);
-    setLoading(false);
-    router.refresh();
-  }
-
+  const isBusy = status === "starting" || status === "stopping";
   const glowColor = active ? active.domain.color : "#00e5ff";
 
   return (
     <div style={{ padding: "0.75rem 0.75rem 0", borderTop: "1px solid rgba(0,229,255,0.08)" }}>
-      {/* Collapsed: just a button row */}
-      {!expanded && !active && (
+      {!active && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
+            disabled={isBusy}
             style={{
               width: "100%",
               padding: "0.4rem 0.5rem",
@@ -99,17 +36,17 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
               color: "rgba(180,190,220,0.7)",
               fontSize: "0.75rem",
               appearance: "none",
-              cursor: "pointer",
+              cursor: isBusy ? "wait" : "pointer",
             }}
           >
             {domains.length === 0
-              ? <option disabled>先创建领域</option>
+              ? <option value="" disabled>先创建领域</option>
               : domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)
             }
           </select>
           <button
-            onClick={handleStart}
-            disabled={loading || !selectedId || domains.length === 0}
+            onClick={startTimer}
+            disabled={isBusy || !selectedId || domains.length === 0}
             style={{
               width: "100%",
               padding: "0.45rem",
@@ -120,17 +57,16 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
               fontSize: "0.75rem",
               fontWeight: 600,
               letterSpacing: "0.1em",
-              cursor: (loading || !selectedId) ? "not-allowed" : "pointer",
-              opacity: (loading || !selectedId) ? 0.4 : 1,
+              cursor: (isBusy || !selectedId) ? "not-allowed" : "pointer",
+              opacity: (isBusy || !selectedId) ? 0.45 : 1,
               textShadow: "0 0 6px rgba(0,229,255,0.4)",
             }}
           >
-            ▶ 开始计时
+            {status === "starting" ? "启动中..." : "▶ 开始计时"}
           </button>
         </div>
       )}
 
-      {/* Running state */}
       {active && (
         <div>
           <div style={{ marginBottom: "0.375rem" }}>
@@ -151,8 +87,8 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
             </div>
           </div>
           <button
-            onClick={handleStop}
-            disabled={loading}
+            onClick={stopTimer}
+            disabled={isBusy || active.id === "__optimistic__"}
             style={{
               width: "100%",
               padding: "0.4rem",
@@ -163,13 +99,24 @@ export default function SidebarTimer({ domains }: { domains: Domain[] }) {
               fontSize: "0.75rem",
               fontWeight: 600,
               letterSpacing: "0.08em",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.5 : 1,
+              cursor: isBusy ? "not-allowed" : "pointer",
+              opacity: isBusy ? 0.5 : 1,
             }}
           >
-            ■ 停止
+            {status === "stopping" ? "停止中..." : "■ 停止"}
           </button>
         </div>
+      )}
+
+      {status === "syncing" && (
+        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "rgba(74,85,128,0.65)", lineHeight: 1.4 }}>
+          正在同步...
+        </p>
+      )}
+      {error && (
+        <p style={{ marginTop: "0.5rem", fontSize: "0.68rem", color: "#ff1744", lineHeight: 1.4 }}>
+          {error}
+        </p>
       )}
     </div>
   );

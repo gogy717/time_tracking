@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { calcWeeklyGoal } from "@/lib/utils";
 
@@ -23,28 +23,42 @@ export default function DomainTargetForm({
   const [date, setDate] = useState(targetDate ? new Date(targetDate).toISOString().split("T")[0] : "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
 
   const calculated = date ? calcWeeklyGoal(totalMinutes, new Date(date), 10, safeTargetHours) : null;
   const displayWeekly = calculated ?? weeklyGoal;
 
   async function handleSave() {
+    if (!date) return;
     setSaving(true);
-    await fetch(`/api/domains/${domainId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetDate: date || null }),
-    });
-    setSaving(false);
-    setSaved(true);
-    setEditing(false);
-    setTimeout(() => setSaved(false), 2000);
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch(`/api/domains/${domainId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetDate: date }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "保存失败，请重试");
+        return;
+      }
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 2000);
+      startRefresh(() => router.refresh());
+    } catch {
+      setError("网络错误，请重试");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const tLabel = safeTargetHours >= 1000 ? `${safeTargetHours / 1000}k` : safeTargetHours;
 
-  const currentDateDisplay = targetDate
-    ? new Date(targetDate).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
+  const currentDateDisplay = date
+    ? new Date(date).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })
     : null;
 
   return (
@@ -102,7 +116,7 @@ export default function DomainTargetForm({
             <input
               type="date"
               value={date}
-              onChange={e => setDate(e.target.value)}
+              onChange={e => { setDate(e.target.value); setError(""); }}
               style={{
                 flex: 1,
                 padding: "0.6rem 0.75rem",
@@ -146,6 +160,8 @@ export default function DomainTargetForm({
             </button>
           </div>
         )}
+        {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.5rem" }}>{error}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
     </div>
   );

@@ -5,15 +5,34 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    setError("");
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } catch {
+      setError("Google 登录启动失败，请重试");
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    await signIn("resend", { email, callbackUrl: "/dashboard" });
-    setSent(true);
-    setLoading(false);
+    setEmailLoading(true);
+    setError("");
+    try {
+      await signIn("resend", { email, callbackUrl: "/dashboard" });
+      setSent(true);
+    } catch {
+      setError("登录链接发送失败，请重试");
+    } finally {
+      setEmailLoading(false);
+    }
   }
 
   return (
@@ -58,7 +77,8 @@ export default function LoginPage() {
 
       {/* Google */}
       <button
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+        onClick={handleGoogleSignIn}
+        disabled={googleLoading || emailLoading}
         style={{
           width:"100%",
           display:"flex",
@@ -72,7 +92,8 @@ export default function LoginPage() {
           color:"#dde4ff",
           fontSize:"0.875rem",
           fontWeight:500,
-          cursor:"pointer",
+          cursor: googleLoading || emailLoading ? "wait" : "pointer",
+          opacity: googleLoading || emailLoading ? 0.65 : 1,
           letterSpacing:"0.05em",
           transition:"all 0.2s",
         }}
@@ -86,7 +107,7 @@ export default function LoginPage() {
         }}
       >
         <GoogleIcon />
-        使用 Google 登录
+        {googleLoading ? "正在连接 Google..." : "使用 Google 登录"}
       </button>
 
       {/* Divider */}
@@ -111,6 +132,7 @@ export default function LoginPage() {
             placeholder="your@email.com"
             value={email}
             onChange={e => setEmail(e.target.value)}
+            disabled={emailLoading || googleLoading}
             required
             style={{
               width:"100%",
@@ -128,10 +150,10 @@ export default function LoginPage() {
           />
           <button
             type="submit"
-            disabled={loading}
+            disabled={emailLoading || googleLoading}
             style={{
               padding:"0.7rem 1rem",
-              background: loading ? "rgba(0,229,255,0.1)" : "rgba(0,229,255,0.15)",
+              background: emailLoading ? "rgba(0,229,255,0.1)" : "rgba(0,229,255,0.15)",
               border:"1px solid rgba(0,229,255,0.4)",
               borderRadius:"2px",
               color:"#00e5ff",
@@ -139,16 +161,21 @@ export default function LoginPage() {
               fontWeight:600,
               letterSpacing:"0.1em",
               textTransform:"uppercase",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.6 : 1,
+              cursor: emailLoading || googleLoading ? "not-allowed" : "pointer",
+              opacity: emailLoading || googleLoading ? 0.6 : 1,
               textShadow:"0 0 8px rgba(0,229,255,0.5)",
               boxShadow:"0 0 15px rgba(0,229,255,0.1)",
               transition:"all 0.2s",
             }}
           >
-            {loading ? "发送中..." : "发送登录链接"}
+            {emailLoading ? "发送中..." : "发送登录链接"}
           </button>
         </form>
+      )}
+      {error && (
+        <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.75rem", textAlign: "center" }}>
+          {error}
+        </p>
       )}
     </div>
   );

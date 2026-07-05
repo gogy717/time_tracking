@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import useSWR from "swr";
 import ProgressCard from "@/components/dashboard/ProgressCard";
 import WeeklyGoalCard from "@/components/dashboard/WeeklyGoalCard";
@@ -7,7 +8,13 @@ import WeeklyGoalCard from "@/components/dashboard/WeeklyGoalCard";
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function DashboardPage() {
-  const { data } = useSWR("/api/stats", fetcher, { refreshInterval: 30000 });
+  const { data, isLoading, mutate } = useSWR("/api/stats", fetcher, { refreshInterval: 30000 });
+
+  useEffect(() => {
+    const handler = () => mutate();
+    window.addEventListener("timer:changed", handler);
+    return () => window.removeEventListener("timer:changed", handler);
+  }, [mutate]);
 
   return (
     <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
@@ -20,6 +27,17 @@ export default function DashboardPage() {
         </div>
         <div style={{ height: 1, background: "linear-gradient(90deg,rgba(0,229,255,0.35),transparent 60%)" }} />
       </div>
+
+      {isLoading && (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <div style={{ height: 172, background: "#0c0c1e", border: "1px solid rgba(0,229,255,0.12)", borderRadius: 2 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: "1rem" }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ height: 190, background: "#0c0c1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 2 }} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {data && (
         <>

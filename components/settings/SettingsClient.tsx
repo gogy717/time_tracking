@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { calcWeeklyGoal } from "@/lib/utils";
@@ -18,7 +18,10 @@ export default function SettingsClient({ user }: { user: User }) {
     user.goalTargetDate ? new Date(user.goalTargetDate).toISOString().split("T")[0] : ""
   );
   const [saving, setSaving] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
 
   const calculatedGoal = targetDate
     ? calcWeeklyGoal(0, new Date(targetDate), user.weeklyGoalHours)
@@ -26,15 +29,26 @@ export default function SettingsClient({ user }: { user: User }) {
 
   async function handleSave() {
     setSaving(true);
-    await fetch("/api/user", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ goalTargetDate: targetDate || null }),
-    });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goalTargetDate: targetDate || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "保存失败，请重试");
+        return;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      startRefresh(() => router.refresh());
+    } catch {
+      setError("网络错误，请重试");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const sectionStyle = {
@@ -89,7 +103,7 @@ export default function SettingsClient({ user }: { user: User }) {
           <input
             type="date"
             value={targetDate}
-            onChange={e => setTargetDate(e.target.value)}
+            onChange={e => { setTargetDate(e.target.value); setError(""); setSaved(false); }}
             style={{
               padding: "0.6rem 0.875rem",
               background: "rgba(255,255,255,0.03)",
@@ -137,6 +151,8 @@ export default function SettingsClient({ user }: { user: User }) {
         >
           {saved ? "◉ 已保存" : saving ? "保存中..." : "保存"}
         </button>
+        {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.75rem" }}>{error}</p>}
+        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
 
       {/* Sign out */}
@@ -145,7 +161,11 @@ export default function SettingsClient({ user }: { user: User }) {
           账号操作
         </h2>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {
+            setSigningOut(true);
+            signOut({ callbackUrl: "/login" }).catch(() => setSigningOut(false));
+          }}
+          disabled={signingOut}
           style={{
             padding: "0.6rem 1.5rem",
             background: "rgba(255,23,68,0.05)",
@@ -156,7 +176,8 @@ export default function SettingsClient({ user }: { user: User }) {
             fontWeight: 600,
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            cursor: "pointer",
+            cursor: signingOut ? "wait" : "pointer",
+            opacity: signingOut ? 0.55 : 1,
             transition: "all 0.2s",
           }}
           onMouseEnter={e => {
@@ -168,7 +189,7 @@ export default function SettingsClient({ user }: { user: User }) {
             (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,23,68,0.25)";
           }}
         >
-          退出登录
+          {signingOut ? "退出中..." : "退出登录"}
         </button>
       </div>
     </div>

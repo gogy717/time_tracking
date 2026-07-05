@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDuration } from "@/lib/utils";
 
@@ -15,15 +15,33 @@ export default function SessionList({ sessions }: { sessions: Session[] }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [items, setItems] = useState(sessions);
+  const [error, setError] = useState("");
+  const [isRefreshing, startRefresh] = useTransition();
 
   async function handleDelete(id: string) {
+    const target = items.find(s => s.id === id);
+    if (!target) return;
     setDeleting(id);
-    const res = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      setItems(prev => prev.filter(s => s.id !== id));
-      router.refresh();
+    setError("");
+    setItems(prev => prev.filter(s => s.id !== id));
+    try {
+      const res = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        startRefresh(() => router.refresh());
+      } else {
+        setItems(prev => [target, ...prev].sort(
+          (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+        ));
+        setError("删除失败，请重试");
+      }
+    } catch {
+      setItems(prev => [target, ...prev].sort(
+        (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      ));
+      setError("网络错误，请重试");
+    } finally {
+      setDeleting(null);
     }
-    setDeleting(null);
   }
 
   if (items.length === 0) {
@@ -85,6 +103,8 @@ export default function SessionList({ sessions }: { sessions: Session[] }) {
           </div>
         </div>
       ))}
+      {error && <p style={{ fontSize: "0.75rem", color: "#ff1744", marginTop: "0.5rem" }}>{error}</p>}
+      {isRefreshing && <p style={{ fontSize: "0.7rem", color: "rgba(74,85,128,0.65)", marginTop: "0.5rem" }}>正在同步...</p>}
     </div>
   );
 }
