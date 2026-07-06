@@ -17,6 +17,7 @@ export default function SidebarTimer() {
   } = useTimer();
 
   const isBusy = status === "starting" || status === "stopping";
+  const isSyncing = status === "syncing";
   const glowColor = active ? active.domain.color : "#548373";
 
   return (
@@ -26,7 +27,7 @@ export default function SidebarTimer() {
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
-            disabled={isBusy}
+            disabled={isBusy || isSyncing}
             style={{
               width: "100%",
               padding: "0.4rem 0.5rem",
@@ -36,17 +37,17 @@ export default function SidebarTimer() {
               color: "#7a6c5d",
               fontSize: "0.75rem",
               appearance: "none",
-              cursor: isBusy ? "wait" : "pointer",
+              cursor: (isBusy || isSyncing) ? "wait" : "pointer",
             }}
           >
             {domains.length === 0
-              ? <option value="" disabled>先创建领域</option>
+              ? <option value="" disabled>{isSyncing ? "同步中..." : "先创建领域"}</option>
               : domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)
             }
           </select>
           <button
             onClick={startTimer}
-            disabled={isBusy || !selectedId || domains.length === 0}
+            disabled={isBusy || isSyncing || !selectedId || domains.length === 0}
             style={{
               width: "100%",
               padding: "0.45rem",
@@ -57,12 +58,12 @@ export default function SidebarTimer() {
               fontSize: "0.75rem",
               fontWeight: 600,
               letterSpacing: 0,
-              cursor: (isBusy || !selectedId) ? "not-allowed" : "pointer",
-              opacity: (isBusy || !selectedId) ? 0.45 : 1,
+              cursor: (isBusy || isSyncing || !selectedId) ? "not-allowed" : "pointer",
+              opacity: (isBusy || isSyncing || !selectedId) ? 0.45 : 1,
               boxShadow: "0 8px 18px rgba(84,131,115,0.18)",
             }}
           >
-            {status === "starting" ? "启动中..." : "▶ 开始计时"}
+            {status === "syncing" ? "同步中..." : status === "starting" ? "启动中..." : "▶ 开始计时"}
           </button>
         </div>
       )}

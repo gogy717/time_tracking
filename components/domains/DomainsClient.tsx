@@ -19,7 +19,13 @@ type Domain = {
 const COLORS = ["#548373", "#d97670", "#e9a94f", "#6d8fbf", "#9a7bb8", "#4f8f65", "#c95f57"];
 const TARGET_OPTIONS = LADDER.map(m => ({ hours: m.hours, label: m.label }));
 
-export default function DomainsClient({ domains }: { domains: Domain[] }) {
+export default function DomainsClient({
+  domains,
+  onChanged,
+}: {
+  domains: Domain[];
+  onChanged?: () => void;
+}) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -58,7 +64,9 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
       if (res.ok) {
         const created = await res.json();
         setOptimisticDomains(prev => prev.map(d => d.id === tempId ? { ...created, _count: { timeSessions: 0 } } : d));
-        startRefresh(() => router.refresh());
+        window.dispatchEvent(new CustomEvent("domains:changed"));
+        if (onChanged) onChanged();
+        else startRefresh(() => router.refresh());
       } else {
         setOptimisticDomains(prev => prev.filter(d => d.id !== tempId));
         setShowForm(true);
@@ -85,7 +93,9 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
     try {
       const res = await fetch(`/api/domains/${id}`, { method: "DELETE" });
       if (res.ok) {
-        startRefresh(() => router.refresh());
+        window.dispatchEvent(new CustomEvent("domains:changed"));
+        if (onChanged) onChanged();
+        else startRefresh(() => router.refresh());
       } else {
         setDeletedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
         const data = await res.json().catch(() => ({}));
@@ -114,11 +124,13 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
   useEffect(() => {
     const ids = preloadIds ? preloadIds.split("|") : [];
     if (ids.length === 0) return;
+    if (shouldSkipWarmup()) return;
 
-    for (const id of ids) {
-      router.prefetch(`/domains/${id}`);
-      void prefetchDomainDetail(id).catch(() => {});
-    }
+    const handle = window.setTimeout(() => {
+      for (const id of ids.slice(0, 3)) warmDomain(id);
+    }, 650);
+
+    return () => window.clearTimeout(handle);
   }, [preloadIds, router]);
 
   const inputStyle = {
@@ -297,4 +309,12 @@ export default function DomainsClient({ domains }: { domains: Domain[] }) {
       )}
     </div>
   );
+}
+
+function shouldSkipWarmup() {
+  const connection = (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+  }).connection;
+
+  return !!connection?.saveData || connection?.effectiveType === "slow-2g" || connection?.effectiveType === "2g";
 }

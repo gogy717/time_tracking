@@ -1,15 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { DomainDetailPayload } from "@/lib/domain-detail";
 import DomainDetailInteractive from "./DomainDetailInteractive";
 import DomainDetailSkeleton from "./DomainDetailSkeleton";
 import { getCachedDomainDetail, prefetchDomainDetail } from "./domain-detail-cache";
+import { useWorkspace } from "@/components/workspace/WorkspaceProvider";
 
 export default function DomainDetailClientPage({ domainId }: { domainId: string }) {
+  const router = useRouter();
+  const { setView } = useWorkspace();
   const [detail, setDetail] = useState<DomainDetailPayload | null>(() => getCachedDomainDetail(domainId));
   const [error, setError] = useState("");
+
+  function goBackToDomains() {
+    setView("domains");
+    router.push("/dashboard");
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -37,9 +45,9 @@ export default function DomainDetailClientPage({ domainId }: { domainId: string 
   if (!detail) {
     return (
       <div style={{ maxWidth: "38rem", margin: "0 auto" }}>
-        <Link href="/domains" style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#8f806f", textDecoration: "none", marginBottom: "1.25rem", letterSpacing: 0 }}>
+        <button type="button" onClick={goBackToDomains} style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#8f806f", textDecoration: "none", marginBottom: "1.25rem", letterSpacing: 0, background: "none", border: "none", padding: 0, cursor: "pointer" }}>
           ← 我的领域
-        </Link>
+        </button>
         <div style={{ background: "#fff1ef", border: "1px solid rgba(201,95,87,0.25)", borderRadius: 16, padding: "1rem", color: "#c95f57", fontSize: "0.875rem" }}>
           {error}
         </div>
@@ -51,9 +59,9 @@ export default function DomainDetailClientPage({ domainId }: { domainId: string 
 
   return (
     <div style={{ maxWidth: "38rem", margin: "0 auto" }}>
-      <Link href="/domains" style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#8f806f", textDecoration: "none", marginBottom: "1.25rem", letterSpacing: 0, transition: "color 0.15s" }}>
+      <button type="button" onClick={goBackToDomains} style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#8f806f", textDecoration: "none", marginBottom: "1.25rem", letterSpacing: 0, transition: "color 0.15s", background: "none", border: "none", padding: 0, cursor: "pointer" }}>
         ← 我的领域
-      </Link>
+      </button>
 
       <div style={{ marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>

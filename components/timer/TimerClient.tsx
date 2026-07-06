@@ -17,6 +17,7 @@ export default function TimerClient() {
   } = useTimer();
 
   const isBusy = status === "starting" || status === "stopping";
+  const isSyncing = status === "syncing";
   const activeDomain = active?.domain ?? domains.find((d) => d.id === selectedId) ?? null;
   const glowColor = activeDomain?.color ?? "#548373";
   const isRunning = !!active;
@@ -84,7 +85,7 @@ export default function TimerClient() {
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
-            disabled={isBusy}
+            disabled={isBusy || isSyncing}
             style={{
               width:"100%",
               padding:"0.7rem 0.875rem",
@@ -93,7 +94,7 @@ export default function TimerClient() {
               borderRadius:"14px",
               color:"#2f2a24",
               fontSize:"0.875rem",
-              cursor: isBusy ? "wait" : "pointer",
+              cursor: (isBusy || isSyncing) ? "wait" : "pointer",
               appearance:"none",
               backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a6c5d' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
               backgroundRepeat:"no-repeat",
@@ -101,14 +102,14 @@ export default function TimerClient() {
             }}
           >
             {domains.length === 0 ? (
-              <option value="" disabled>先创建一个领域</option>
+              <option value="" disabled>{isSyncing ? "同步中..." : "先创建一个领域"}</option>
             ) : (
               domains.map(d => <option key={d.id} value={d.id}>{d.name}</option>)
             )}
           </select>
           <button
             onClick={startTimer}
-            disabled={isBusy || !selectedId}
+            disabled={isBusy || isSyncing || !selectedId}
             style={{
               padding:"0.75rem 2rem",
               background:"#548373",
@@ -118,13 +119,13 @@ export default function TimerClient() {
               fontSize:"0.875rem",
               fontWeight:600,
               letterSpacing: 0,
-              cursor: (isBusy || !selectedId) ? "not-allowed" : "pointer",
-              opacity: (isBusy || !selectedId) ? 0.4 : 1,
+              cursor: (isBusy || isSyncing || !selectedId) ? "not-allowed" : "pointer",
+              opacity: (isBusy || isSyncing || !selectedId) ? 0.4 : 1,
               boxShadow:"0 10px 20px rgba(84,131,115,0.22)",
               transition:"all 0.2s",
             }}
           >
-            {status === "starting" ? "启动中..." : "开始"}
+            {status === "syncing" ? "同步中..." : status === "starting" ? "启动中..." : "开始"}
           </button>
         </div>
       )}

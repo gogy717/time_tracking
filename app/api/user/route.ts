@@ -3,6 +3,19 @@ import { cleanPositiveNumber, parseOptionalDate, readJsonBody } from "@/lib/api-
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { email: true, name: true, image: true, weeklyGoalHours: true, goalTargetDate: true },
+  });
+
+  if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(user);
+}
+
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
