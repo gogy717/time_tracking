@@ -2,18 +2,19 @@
 
 import {
   createContext,
+  type Dispatch,
+  type SetStateAction,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
-  useTransition,
 } from "react";
-import { useRouter } from "next/navigation";
 
 export type TimerDomain = { id: string; name: string; color: string };
 export type TimerSession = { id: string; startTime: string; domain: TimerDomain } | null;
+type TimerBootstrap = { domains: TimerDomain[]; activeSession: TimerSession };
 
 type TimerContextValue = {
   domains: TimerDomain[];
@@ -30,31 +31,61 @@ type TimerContextValue = {
 const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({
-  domains,
-  initialActive,
   children,
 }: {
-  domains: TimerDomain[];
-  initialActive: TimerSession;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const [selectedId, setSelectedId] = useState(domains[0]?.id ?? "");
-  const [active, setActive] = useState<TimerSession>(initialActive);
-  const [elapsed, setElapsed] = useState(() => secondsSince(initialActive?.startTime));
+  const [domains, setDomains] = useState<TimerDomain[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [active, setActive] = useState<TimerSession>(null);
+  const [elapsed, setElapsed] = useState(0);
   const [busy, setBusy] = useState<"idle" | "starting" | "stopping">("idle");
+  const [syncing, setSyncing] = useState(true);
   const [error, setError] = useState("");
-  const [isRefreshing, startRefresh] = useTransition();
-  const activeRef = useRef<TimerSession>(initialActive);
-  const serverActiveKeyRef = useRef(sessionKey(initialActive));
+  const activeRef = useRef<TimerSession>(null);
+  const busyRef = useRef(busy);
 
   useEffect(() => {
-    const nextKey = sessionKey(initialActive);
-    if (nextKey === serverActiveKeyRef.current) return;
-    if (busy !== "idle") return;
-    serverActiveKeyRef.current = nextKey;
-    setActive(initialActive);
-  }, [busy, initialActive]);
+    busyRef.current = busy;
+  }, [busy]);
+
+  const applyBootstrap = useCallback((payload: TimerBootstrap) => {
+    setDomains(payload.domains);
+    if (busyRef.current === "idle") setActive(payload.activeSession);
+    setSelectedId(current => {
+      if (payload.activeSession?.domain.id) return payload.activeSession.domain.id;
+      if (current && payload.domains.some(domain => domain.id === current)) return current;
+      return payload.domains[0]?.id ?? "";
+    });
+  }, []);
+
+  const loadBootstrap = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/timer/bootstrap", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "bootstrap failed");
+      applyBootstrap({
+        domains: Array.isArray(data.domains) ? data.domains : [],
+        activeSession: data.activeSession ?? null,
+      });
+      setError("");
+    } catch {
+      setError("同步计时数据失败，请刷新重试");
+    } finally {
+      setSyncing(false);
+    }
+  }, [applyBootstrap]);
+
+  useEffect(() => {
+    void loadBootstrap();
+  }, [loadBootstrap]);
+
+  useEffect(() => {
+    const handler = () => void loadBootstrap();
+    window.addEventListener("domains:changed", handler);
+    return () => window.removeEventListener("domains:changed", handler);
+  }, [loadBootstrap]);
 
   useEffect(() => {
     const hasSelected = selectedId && domains.some((domain) => domain.id === selectedId);
@@ -86,8 +117,7 @@ export function TimerProvider({
 
   const syncAfterMutation = useCallback(() => {
     window.dispatchEvent(new CustomEvent("timer:changed"));
-    startRefresh(() => router.refresh());
-  }, [router]);
+  }, []);
 
   const startTimer = useCallback(async () => {
     if (busy !== "idle" || active || !selectedId) return;
@@ -114,15 +144,18 @@ export function TimerProvider({
 
       if (!res.ok) {
         setActive(data.session ?? null);
+        if (data.session?.domain) mergeDomain(setDomains, data.session.domain);
         setError(data.error ?? "启动失败，请重试");
         return;
       }
 
-      setActive(data.session ?? {
+      const nextSession = data.session ?? {
         id: data.sessionId,
         startTime: data.startTime,
         domain,
-      });
+      };
+      setActive(nextSession);
+      if (nextSession?.domain) mergeDomain(setDomains, nextSession.domain);
       syncAfterMutation();
     } catch {
       setActive(null);
@@ -163,11 +196,11 @@ export function TimerProvider({
     setSelectedId,
     active,
     elapsed,
-    status: busy !== "idle" ? busy : isRefreshing ? "syncing" : "idle",
+    status: busy !== "idle" ? busy : syncing ? "syncing" : "idle",
     error,
     startTimer,
     stopTimer,
-  }), [active, busy, domains, elapsed, error, isRefreshing, selectedId, startTimer, stopTimer]);
+  }), [active, busy, domains, elapsed, error, selectedId, startTimer, stopTimer, syncing]);
 
   return <TimerContext.Provider value={value}>{children}</TimerContext.Provider>;
 }
@@ -183,6 +216,9 @@ function secondsSince(value?: string) {
   return Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
 }
 
-function sessionKey(session: TimerSession) {
-  return session ? `${session.id}:${session.startTime}` : "none";
+function mergeDomain(
+  setDomains: Dispatch<SetStateAction<TimerDomain[]>>,
+  domain: TimerDomain
+) {
+  setDomains(prev => prev.some(existing => existing.id === domain.id) ? prev : [...prev, domain]);
 }

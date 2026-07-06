@@ -1,32 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import SidebarTimer from "./SidebarTimer";
+import { useWorkspace, type WorkspaceView } from "@/components/workspace/WorkspaceProvider";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "仪表盘", icon: "◈" },
-  { href: "/domains", label: "我的领域", icon: "⬡" },
-  { href: "/settings", label: "设置", icon: "◧" },
-];
+  { view: "dashboard", label: "仪表盘", icon: "◈" },
+  { view: "domains", label: "我的领域", icon: "⬡" },
+  { view: "settings", label: "设置", icon: "◧" },
+] satisfies { view: WorkspaceView; label: string; icon: string }[];
 
 type User = { name?: string | null; email?: string | null; image?: string | null };
 
 export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const { view, setView } = useWorkspace();
+  const [pendingHref, setPendingHref] = useState<WorkspaceView | null>(null);
 
   useEffect(() => {
     setPendingHref(null);
-    for (const item of NAV_ITEMS) router.prefetch(item.href);
-    router.prefetch("/timer");
+    if (shouldSkipWarmup()) return;
+
+    const handle = window.setTimeout(() => {
+      router.prefetch("/dashboard");
+    }, 700);
+
+    return () => window.clearTimeout(handle);
   }, [pathname, router]);
 
-  function warmRoute(href: string) {
-    router.prefetch(href);
+  function switchView(nextView: WorkspaceView) {
+    setView(nextView);
+    if (pathname !== "/dashboard") {
+      setPendingHref(nextView);
+      router.push("/dashboard");
+    }
   }
 
   return (
@@ -56,20 +66,17 @@ export default function Sidebar({ user }: { user: User }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: "0.5rem 0.75rem", display: "flex", flexDirection: "column", gap: "0.125rem" }}>
-        {NAV_ITEMS.map(({ href, label, icon }) => {
-          const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
-          const pending = pendingHref === href;
+        {NAV_ITEMS.map(({ view: itemView, label, icon }) => {
+          const active = pathname === "/dashboard" ? view === itemView : pathMatchesView(pathname, itemView);
+          const pending = pendingHref === itemView;
           return (
-            <Link
-              key={href}
-              href={href}
-              onMouseEnter={() => warmRoute(href)}
-              onFocus={() => warmRoute(href)}
-              onTouchStart={() => warmRoute(href)}
-              onClick={() => {
-                if (!active) setPendingHref(href);
-                warmRoute(href);
-              }}
+            <button
+              key={itemView}
+              type="button"
+              onMouseEnter={() => router.prefetch("/dashboard")}
+              onFocus={() => router.prefetch("/dashboard")}
+              onTouchStart={() => router.prefetch("/dashboard")}
+              onClick={() => switchView(itemView)}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -82,14 +89,15 @@ export default function Sidebar({ user }: { user: User }) {
                 background: active ? "#e6f1ea" : pending ? "rgba(233,169,79,0.13)" : "transparent",
                 border: `1px solid ${active ? "rgba(84,131,115,0.18)" : "transparent"}`,
                 letterSpacing: 0,
-                textDecoration: "none",
+                textAlign: "left",
                 transition: "all 0.15s",
+                cursor: "pointer",
               }}
             >
               <span style={{ fontFamily: "monospace", fontSize: "1rem", opacity: active ? 1 : 0.72 }}>{icon}</span>
               {label}
               {pending && <span style={{ marginLeft: "auto", width: 6, height: 6, borderRadius: "50%", background: "#e9a94f" }} />}
-            </Link>
+            </button>
           );
         })}
       </nav>
@@ -113,4 +121,19 @@ export default function Sidebar({ user }: { user: User }) {
       </div>
     </aside>
   );
+}
+
+function pathMatchesView(pathname: string, view: WorkspaceView) {
+  if (view === "dashboard") return pathname === "/dashboard";
+  if (view === "domains") return pathname.startsWith("/domains");
+  if (view === "settings") return pathname.startsWith("/settings");
+  return false;
+}
+
+function shouldSkipWarmup() {
+  const connection = (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+  }).connection;
+
+  return !!connection?.saveData || connection?.effectiveType === "slow-2g" || connection?.effectiveType === "2g";
 }

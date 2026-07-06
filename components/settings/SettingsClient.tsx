@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { calcWeeklyGoal } from "@/lib/utils";
 
 type User = {
@@ -12,8 +11,13 @@ type User = {
   goalTargetDate?: Date | null;
 };
 
-export default function SettingsClient({ user }: { user: User }) {
-  const router = useRouter();
+export default function SettingsClient({
+  user,
+  onSaved,
+}: {
+  user: User;
+  onSaved?: () => void;
+}) {
   const [targetDate, setTargetDate] = useState(
     user.goalTargetDate ? new Date(user.goalTargetDate).toISOString().split("T")[0] : ""
   );
@@ -21,7 +25,6 @@ export default function SettingsClient({ user }: { user: User }) {
   const [signingOut, setSigningOut] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const [isRefreshing, startRefresh] = useTransition();
 
   const calculatedGoal = targetDate
     ? calcWeeklyGoal(0, new Date(targetDate), user.weeklyGoalHours)
@@ -42,8 +45,9 @@ export default function SettingsClient({ user }: { user: User }) {
         return;
       }
       setSaved(true);
+      window.dispatchEvent(new CustomEvent("settings:changed"));
+      onSaved?.();
       setTimeout(() => setSaved(false), 2000);
-      startRefresh(() => router.refresh());
     } catch {
       setError("网络错误，请重试");
     } finally {
@@ -150,7 +154,6 @@ export default function SettingsClient({ user }: { user: User }) {
           {saved ? "◉ 已保存" : saving ? "保存中..." : "保存"}
         </button>
         {error && <p style={{ fontSize: "0.75rem", color: "#c95f57", marginTop: "0.75rem" }}>{error}</p>}
-        {isRefreshing && <p style={{ fontSize: "0.7rem", color: "#8f806f", marginTop: "0.5rem" }}>正在同步...</p>}
       </div>
 
       {/* Sign out */}

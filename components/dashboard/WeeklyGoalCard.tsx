@@ -1,7 +1,21 @@
 "use client";
 
-import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
+import dynamic from "next/dynamic";
 import { formatDuration } from "@/lib/utils";
+
+const WeeklyGoalChart = dynamic(() => import("./WeeklyGoalChart"), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        borderRadius: "50%",
+        background: "conic-gradient(#548373 0deg, rgba(110,92,70,0.10) 0deg)",
+      }}
+    />
+  ),
+});
 
 export default function WeeklyGoalCard({
   thisWeekMinutes,
@@ -20,7 +34,6 @@ export default function WeeklyGoalCard({
   predicted10000?: Date | null;
   weeklyAvgMinutes?: number;
 }) {
-  const data = [{ value: Math.min(progress, 100), fill: "#548373" }];
   const remainingHours = Math.max(0, 10000 - (totalMinutes ?? 0) / 60);
   const remainingWeeks = targetDate
     ? Math.max(0, (new Date(targetDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000))
@@ -41,11 +54,7 @@ export default function WeeklyGoalCard({
       }}
     >
       <div style={{ width: 120, height: 120, flexShrink: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart innerRadius="60%" outerRadius="90%" data={data} startAngle={90} endAngle={-270}>
-            <RadialBar dataKey="value" background={{ fill: "rgba(110,92,70,0.10)" }} cornerRadius={8} />
-          </RadialBarChart>
-        </ResponsiveContainer>
+        <WeeklyGoalChart progress={progress} />
       </div>
 
       <div style={{ flex: 1 }}>
