@@ -88,7 +88,7 @@ export default function SidebarTimer() {
           </div>
           <button
             onClick={stopTimer}
-            disabled={isBusy || active.id === "__optimistic__"}
+            disabled={isBusy}
             style={{
               width: "100%",
               padding: "0.4rem",

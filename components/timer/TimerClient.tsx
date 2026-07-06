@@ -61,7 +61,7 @@ export default function TimerClient() {
           </div>
           <button
             onClick={stopTimer}
-            disabled={isBusy || active.id === "__optimistic__"}
+            disabled={isBusy}
             style={{
               padding:"0.75rem 2.5rem",
               background:"#fff1ef",

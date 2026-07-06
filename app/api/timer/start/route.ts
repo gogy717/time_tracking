@@ -13,6 +13,13 @@ export async function POST(req: Request) {
 
   const domainId = typeof body.domainId === "string" ? body.domainId : "";
   if (!domainId) return NextResponse.json({ error: "domainId is required" }, { status: 400 });
+  const requestedStartTime = parseClientDate(body.startTime);
+  if (body.startTime !== undefined && !requestedStartTime) {
+    return NextResponse.json({ error: "Invalid startTime" }, { status: 400 });
+  }
+  if (requestedStartTime && requestedStartTime.getTime() > Date.now() + 60_000) {
+    return NextResponse.json({ error: "startTime cannot be in the future" }, { status: 400 });
+  }
 
   const domain = await db.domain.findFirst({ where: { id: domainId, userId: session.user.id } });
   if (!domain) return NextResponse.json({ error: "Domain not found" }, { status: 404 });
@@ -40,7 +47,7 @@ export async function POST(req: Request) {
       data: {
         userId: session.user.id,
         domainId,
-        startTime: new Date(),
+        startTime: requestedStartTime ?? new Date(),
       },
       select: {
         id: true,
@@ -71,4 +78,11 @@ export async function POST(req: Request) {
     }
     throw error;
   }
+}
+
+function parseClientDate(value: unknown) {
+  if (value === undefined) return null;
+  if (typeof value !== "string") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
